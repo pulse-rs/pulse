@@ -1,8 +1,8 @@
-use pulse_ast::position::Position;
-use std::io::Write;
+use colored::Colorize;
 use log::Level;
+use pulse_ast::position::Position;
+use std::io::{BufWriter, Stderr, Write};
 use termcolor::{Buffer, Color, WriteColor};
-use crate::colors::ColorHandler;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Diagnostic {
@@ -14,19 +14,18 @@ pub struct Diagnostic {
 }
 
 impl Diagnostic {
-    pub fn log_pretty(&self, buff: &mut Buffer) {
-        ColorHandler::set_color(buff, Color::Red, true);
-        write!(buff, "{}", self.level.to_string().to_lowercase()).expect("Error writing level");
-        ColorHandler::reset_color(buff);
-
-        ColorHandler::set_dimmed_color(buff);
-        write!(buff, ": ").expect("Error writing comma");
-        ColorHandler::reset_color(buff);
-
-        writeln!(buff, "{}", self.title).expect("Error writing title");
+    pub fn log_pretty(&self, buff: &mut BufWriter<Stderr>) {
+        writeln!(
+            buff,
+            "{}{}{}",
+            self.level.to_string().to_lowercase().bright_red(),
+            ": ".dimmed(),
+            self.title
+        )
+        .expect("Error writing level");
 
         if let Some(location) = &self.location {
-            writeln!(buff, "Location: {location}").expect("Error writing location");
+            // TODO: implement location printing
         }
         if let Some(text) = &self.text {
             writeln!(buff, "{}", text).expect("Error writing text");
@@ -35,11 +34,10 @@ impl Diagnostic {
         self.print_hint(buff);
     }
 
-    pub fn print_hint(&self, buff: &mut Buffer) {
+    pub fn print_hint(&self, buff: &mut BufWriter<Stderr>) {
         if let Some(hint) = &self.hint {
-            ColorHandler::set_color(buff, Color::Cyan, false);
-            writeln!(buff, "Hint: {hint}").expect("Error writing hint");
-            ColorHandler::reset_color(buff);
+            writeln!(buff, "{}{}", "Hint: ".bright_cyan(), hint.bright_cyan())
+                .expect("Error writing hint");
         }
     }
 }

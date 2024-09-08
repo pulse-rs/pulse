@@ -295,9 +295,9 @@ version = "0.1.0"
 name = "pulse_core"
 version = "0.1.0"
 dependencies = [
+ "colored",
  "log",
  "pulse_ast",
- "termcolor",
  "thiserror",
 ]
 

@@ -1,4 +1,3 @@
-mod colors;
 mod diagnostics;
 pub mod error;
 

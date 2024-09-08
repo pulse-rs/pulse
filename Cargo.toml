@@ -7,10 +7,9 @@ members = ["cli",
 [workspace.dependencies]
 clap = { version = "4.5.17", features = ["derive"] }
 thiserror = { version = "1.0.63" }
-termcolor = { version = "1.4.1" }
 log = { version = "0.4.22" }
-
 vit_logger = { version = "0.1.5" }
+colored = { version = "2.1.0" }
 
 # Pulse Crates
 pulse_ast = { path = "core/ast" }

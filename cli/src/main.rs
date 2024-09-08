@@ -7,6 +7,7 @@ use clap::{
     Args, Parser, Subcommand, ValueHint,
 };
 use std::io;
+use std::io::{stderr, BufWriter, Write};
 use std::path::PathBuf;
 use termcolor::{BufferWriter, ColorChoice};
 
@@ -37,7 +38,7 @@ enum Commands {
 }
 
 fn main() {
-    let stderr = BufferWriter::stderr(ColorChoice::Always);
+    let mut stderr = BufWriter::new(stderr());
     let program = Program::parse();
     setup_logger(program.verbose);
 
@@ -54,9 +55,8 @@ fn main() {
             log::warn!("Program finished successfully");
         }
         Err(err) => {
-            let mut buffer = stderr.buffer();
-            err.log_pretty(&mut buffer);
-            stderr.print(&buffer).expect("Final result error writing");
+            err.log_pretty(&mut stderr);
+            stderr.flush().expect("Final result error writing");
             std::process::exit(1);
         }
     }
