@@ -49,11 +49,7 @@ fn main() {
 
     match result {
         Ok(_) => {
-            log::info!("Program finished successfully");
-            log::error!("Program finished successfully");
-            log::trace!("Program finished successfully");
             log::debug!("Program finished successfully");
-            log::warn!("Program finished successfully");
         }
         Err(err) => {
             err.log_pretty(&mut stderr);

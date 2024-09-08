@@ -1,7 +1,7 @@
-use crate::diagnostics::Diagnostic;
 use log::Level;
 use std::io::{BufWriter, Stderr};
 use thiserror::Error;
+use crate::error::diagnostics::Diagnostic;
 
 #[derive(Debug, Error)]
 pub enum Error {

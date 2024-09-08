@@ -1,4 +1,4 @@
-use pulse_ast::position::Span;
+use crate::ast::span::Span;
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Token {
@@ -21,33 +21,64 @@ impl Token {
 }
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
+pub enum Operator {
+    Plus,
+    Minus,
+    Asterisk,
+    Slash,
+    Equals,
+    Ampersand,
+    Pipe,
+    Caret,
+    DoubleAsterisk,
+    Percent,
+    Tilde,
+    GreaterThan,
+    LessThan,
+    GreaterThanEquals,
+    LessThanEquals,
+    EqualsEquals,
+    BangEquals,
+}
+
+#[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub enum Keyword {
     Let,
-    Const,
     If,
     Else,
+    True,
+    False,
     While,
-    For,
-    Function,
+    Fn,
     Return,
-    Break,
-    Continue,
-    Null,
+}
+
+#[derive(Clone, Copy, PartialEq, Eq, Debug)]
+pub enum Separator {
+    LeftParen,
+    RightParen,
+    OpenBrace,
+    CloseBrace,
+    Comma,
+    Colon,
+    SemiColon,
+    Arrow,
 }
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum TokenKind {
     Identifier(String),
-    Keyword(String),
-    NumericLiteral(NumericLiteral),
+    Keyword(Keyword),
+    Numeric(NumericLiteral),
     StringLiteral(String),
     BooleanLiteral(bool),
-    Operator(String),
-    Delimiter(char),
+    Operator(Separator),
+    Separator(char),
     Comment(String),
     Whitespace,
     Newline,
     EOF,
+    Bad,
 }
 
 #[derive(Debug, Clone, PartialEq)]

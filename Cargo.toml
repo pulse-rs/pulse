@@ -1,8 +1,6 @@
 [workspace]
 resolver = "2"
-members = ["cli",
-    "core/*"
-]
+members = ["lang", "core"]
 
 [workspace.dependencies]
 clap = { version = "4.5.17", features = ["derive"] }
@@ -13,6 +11,4 @@ colored = { version = "2.1.0" }
 backtrace = { version = "0.3.73" }
 
 # Pulse Crates
-pulse_ast = { path = "core/ast" }
-pulse_lexer = { path = "core/lexer" }
-pulse_core = { path = "core/core" }
+pulse_core = { path = "core" }

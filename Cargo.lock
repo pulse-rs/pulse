@@ -178,18 +178,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1462739cb27611015575c0c11df5df7601141071f07518d56fcc1be504cbec97"
 
 [[package]]
-name = "cli"
-version = "0.1.0"
-dependencies = [
- "backtrace",
- "clap",
- "colored",
- "log",
- "pulse_core",
- "vit_logger",
-]
-
-[[package]]
 name = "colorchoice"
 version = "1.0.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -271,6 +259,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "lang"
+version = "0.1.0"
+dependencies = [
+ "backtrace",
+ "clap",
+ "colored",
+ "log",
+ "pulse_core",
+ "vit_logger",
+]
+
+[[package]]
 name = "lazy_static"
 version = "1.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -349,24 +349,12 @@ dependencies = [
 ]
 
 [[package]]
-name = "pulse_ast"
-version = "0.1.0"
-
-[[package]]
 name = "pulse_core"
 version = "0.1.0"
 dependencies = [
  "colored",
  "log",
- "pulse_ast",
  "thiserror",
-]
-
-[[package]]
-name = "pulse_lexer"
-version = "0.1.0"
-dependencies = [
- "pulse_ast",
 ]
 
 [[package]]

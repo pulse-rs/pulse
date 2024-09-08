@@ -1,12 +1,12 @@
-use pulse_ast::position::Position;
+use crate::ast::position::Position;
 use std::io;
 use std::io::Error;
 
 #[derive(Debug)]
 pub(super) struct TokenStream {
     pos: Position,
-    peeked: [Option<u32>; 4],
-    chars: Vec<u32>,
+    peeked: [Option<char>; 4],
+    chars: Vec<char>,
 }
 
 impl TokenStream {
@@ -20,11 +20,11 @@ impl TokenStream {
         Self {
             pos: Position::new(1, 1).unwrap(),
             peeked: [None; 4],
-            chars: input.chars().map(|c| c as u32).collect(),
+            chars: input.chars().collect(),
         }
     }
 
-    pub fn peek_char(&mut self) -> Result<Option<u32>, Error> {
+    pub fn peek_char(&mut self) -> Result<Option<char>, Error> {
         if let Some(c) = self.peeked[0] {
             return Ok(Some(c));
         }
@@ -34,7 +34,7 @@ impl TokenStream {
         Ok(next)
     }
 
-    pub(crate) fn next_char(&mut self) -> io::Result<Option<u32>> {
+    pub(crate) fn next_char(&mut self) -> io::Result<Option<char>> {
         let ch = if let Some(c) = self.peeked[0] {
             self.peeked[0] = None;
             self.peeked.rotate_left(1);

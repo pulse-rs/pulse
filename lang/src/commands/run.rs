@@ -1,4 +1,4 @@
-use pulse_core::error::Error;
+use pulse_core::error::error::Error;
 use pulse_core::Result;
 use std::path::PathBuf;
 

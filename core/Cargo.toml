@@ -7,6 +7,3 @@ edition = "2021"
 thiserror = { workspace = true }
 colored = { workspace = true }
 log = { workspace = true }
-
-# Pulse Crates
-pulse_ast = { workspace = true }

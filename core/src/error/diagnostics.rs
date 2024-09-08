@@ -1,7 +1,7 @@
 use colored::Colorize;
 use log::Level;
-use pulse_ast::position::Position;
 use std::io::{BufWriter, Stderr, Write};
+use crate::ast::position::Position;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Diagnostic {
