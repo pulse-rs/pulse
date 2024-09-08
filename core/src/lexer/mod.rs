@@ -1,105 +1,175 @@
-use crate::ast::span::Span;
-use crate::lexer::stream::TokenStream;
-use crate::lexer::token::{Keyword, NumericLiteral, Token, TokenKind};
+use crate::ast::span::TextSpan;
+use crate::lexer::token::{Keyword, Operator, Separator, Token, TokenKind};
 
-pub mod stream;
 pub mod token;
 
-use crate::Result;
-
-#[derive(Debug)]
-pub struct Lexer {
-    pub stream: TokenStream,
+pub struct Lexer<'a> {
+    input: &'a str,
+    current_pos: usize,
 }
 
-impl Lexer {
-    pub fn new(content: String) -> Self {
+impl<'a> Lexer<'a> {
+    pub fn new(input: &'a str) -> Self {
         Self {
-            stream: TokenStream::new(&content),
+            input,
+            current_pos: 0,
         }
     }
 
-    pub fn lex(&mut self) -> Result<Option<Token>> {
-        let mut start = self.stream.pos();
-        let Some(mut next_ch) = self.stream.next_char()? else {
-            return Ok(None);
-        };
-
-        if next_ch.is_whitespace() {
-            loop {
-                start = self.stream.pos();
-                let Some(next) = self.stream.next_char()? else {
-                    return Ok(None);
-                };
-                if !next.is_whitespace() {
-                    next_ch = next;
-                    break;
-                }
-            }
+    pub fn next_token(&mut self) -> Option<Token> {
+        if self.current_pos == self.input.len() {
+            self.current_pos += 1;
+            return Some(Token::new(
+                TokenKind::Eof,
+                TextSpan::new(0, 0, "\0".to_string()),
+            ));
         }
-
-        let mut kind: TokenKind = TokenKind::Bad;
-
-        if next_ch.is_digit(10) {
-            let value = self.consume_number();
-
-            kind = TokenKind::Numeric(NumericLiteral::Integer(value?));
-        } else if Lexer::is_identifier_start(&next_ch) {
-            let ident = self.consume_identifier()?;
-
-            kind = match ident.as_str() {
+        let c = self.current_char()?;
+        let start = self.current_pos;
+        let kind = if Self::is_number_start(&c) {
+            TokenKind::Number(self.consume_number())
+        } else if Self::is_whitespace(&c) {
+            self.consume();
+            TokenKind::Whitespace
+        } else if Self::is_identifier_start(&c) {
+            match self.consume_identifier().as_str() {
                 "let" => TokenKind::Keyword(Keyword::Let),
-                "fn" => TokenKind::Keyword(Keyword::Fn),
                 "if" => TokenKind::Keyword(Keyword::If),
                 "else" => TokenKind::Keyword(Keyword::Else),
+                "true" => TokenKind::Keyword(Keyword::True),
+                "false" => TokenKind::Keyword(Keyword::False),
                 "while" => TokenKind::Keyword(Keyword::While),
+                "func" => TokenKind::Keyword(Keyword::Func),
                 "return" => TokenKind::Keyword(Keyword::Return),
-                _ => TokenKind::Identifier(ident),
-            };
+                _ => TokenKind::Identifier,
+            }
         } else {
+            self.consume_punctuation()
+        };
+
+        let end = self.current_pos;
+        let literal = self.input[start..end].to_string();
+        Some(Token::new(kind, TextSpan::new(start, end, literal)))
+    }
+    fn consume_punctuation(&mut self) -> TokenKind {
+        let c = self.consume().unwrap();
+        match c {
+            '+' => TokenKind::Operator(Operator::Plus),
+            '-' => self.lex_potential_double_char_operator(
+                '>',
+                TokenKind::Operator(Operator::Minus),
+                TokenKind::Separator(Separator::Arrow),
+            ),
+            '*' => self.lex_potential_double_char_operator(
+                '*',
+                TokenKind::Operator(Operator::Asterisk),
+                TokenKind::Operator(Operator::DoubleAsterisk),
+            ),
+            '%' => TokenKind::Operator(Operator::Percent),
+            '/' => TokenKind::Operator(Operator::Slash),
+            '(' => TokenKind::Separator(Separator::LeftParen),
+            ')' => TokenKind::Separator(Separator::RightParen),
+            '=' => self.lex_potential_double_char_operator(
+                '=',
+                TokenKind::Operator(Operator::Equals),
+                TokenKind::Operator(Operator::EqualsEquals),
+            ),
+            '&' => TokenKind::Operator(Operator::Ampersand),
+            '|' => TokenKind::Operator(Operator::Pipe),
+            '^' => TokenKind::Operator(Operator::Caret),
+            '~' => TokenKind::Operator(Operator::Tilde),
+            '>' => self.lex_potential_double_char_operator(
+                '=',
+                TokenKind::Operator(Operator::GreaterThan),
+                TokenKind::Operator(Operator::GreaterThanEquals),
+            ),
+            '<' => self.lex_potential_double_char_operator(
+                '=',
+                TokenKind::Operator(Operator::LessThan),
+                TokenKind::Operator(Operator::LessThanEquals),
+            ),
+            '!' => self.lex_potential_double_char_operator(
+                '=',
+                TokenKind::Bad,
+                TokenKind::Operator(Operator::BangEquals),
+            ),
+            '{' => TokenKind::Separator(Separator::OpenBrace),
+            '}' => TokenKind::Separator(Separator::CloseBrace),
+            ',' => TokenKind::Separator(Separator::Comma),
+            ':' => TokenKind::Separator(Separator::Colon),
+            ';' => TokenKind::Separator(Separator::SemiColon),
+
+            _ => TokenKind::Bad,
         }
+    }
 
-        let end = self.stream.pos();
-        let span = Span::new(start, end);
+    fn lex_potential_double_char_operator(
+        &mut self,
+        expected: char,
+        one_char_kind: TokenKind,
+        double_char_kind: TokenKind,
+    ) -> TokenKind {
+        if let Some(next) = self.current_char() {
+            if next == expected {
+                self.consume();
+                double_char_kind
+            } else {
+                one_char_kind
+            }
+        } else {
+            one_char_kind
+        }
+    }
 
-        Ok(Some(Token::new(kind, span)))
+    fn is_number_start(c: &char) -> bool {
+        c.is_digit(10)
     }
 
     fn is_identifier_start(c: &char) -> bool {
         c.is_alphabetic() || c == &'_'
     }
 
-    fn consume_identifier(&mut self) -> Result<String> {
-        let mut ident = String::new();
-        while let Ok(ch) = self.stream.peek_char() {
-            if let Some(ch) = ch {
-                if Lexer::is_identifier_start(&ch) {
-                    self.stream.next_char()?;
-                    ident.push(ch);
-                } else {
-                    break;
-                }
-            } else {
-                break;
-            }
-        }
-        Ok(ident)
+    fn is_whitespace(c: &char) -> bool {
+        c.is_whitespace()
     }
 
-    fn consume_number(&mut self) -> Result<i64> {
-        let mut value = 0;
-        while let Ok(ch) = self.stream.peek_char() {
-            if let Some(ch) = ch {
-                if ch.is_digit(10) {
-                    self.stream.next_char()?;
-                    value = value * 10 + ch as i64 - '0' as i64;
-                } else {
-                    break;
-                }
+    fn current_char(&self) -> Option<char> {
+        self.input.chars().nth(self.current_pos)
+    }
+
+    fn consume(&mut self) -> Option<char> {
+        if self.current_pos >= self.input.len() {
+            return None;
+        }
+        let c = self.current_char();
+        self.current_pos += 1;
+
+        c
+    }
+
+    fn consume_identifier(&mut self) -> String {
+        let mut identifier = String::new();
+        while let Some(c) = self.current_char() {
+            if Self::is_identifier_start(&c) {
+                self.consume().unwrap();
+                identifier.push(c);
             } else {
                 break;
             }
         }
-        Ok(value)
+        identifier
+    }
+
+    fn consume_number(&mut self) -> i64 {
+        let mut number: i64 = 0;
+        while let Some(c) = self.current_char() {
+            if c.is_digit(10) {
+                self.consume().unwrap();
+                number = number * 10 + c.to_digit(10).unwrap() as i64;
+            } else {
+                break;
+            }
+        }
+        number
     }
 }

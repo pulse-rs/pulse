@@ -10,6 +10,7 @@ use clap::{
 use std::io;
 use std::io::{stderr, BufWriter, Write};
 use std::path::PathBuf;
+use pulse_core::error::error::Error::NotImplemented;
 
 pub mod commands {
     pub mod run;
@@ -44,7 +45,14 @@ fn main() {
     setup_logger(program.verbose);
 
     let result = match &program.command {
-        Commands::Run { file } => run_command(file.clone()),
+        Commands::Run { file } => {
+            if let Some(file) = file {
+                run_command(file.clone())
+            } else {
+                // TODO: repl
+                Err(NotImplemented("REPL".to_string()))
+            }
+        }
     };
 
     match result {

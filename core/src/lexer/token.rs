@@ -1,26 +1,19 @@
-use crate::ast::span::Span;
+use crate::ast::span::TextSpan;
+use std::fmt::{Display, Formatter};
 
 #[derive(Debug, Clone, PartialEq)]
-pub struct Token {
-    kind: TokenKind,
-    span: Span,
+pub enum Keyword {
+    Let,
+    If,
+    Else,
+    True,
+    False,
+    While,
+    Func,
+    Return,
 }
 
-impl Token {
-    pub fn new(kind: TokenKind, span: Span) -> Self {
-        Self { kind, span }
-    }
-
-    pub fn kind(&self) -> &TokenKind {
-        &self.kind
-    }
-
-    pub fn span(&self) -> Span {
-        self.span
-    }
-}
-
-#[derive(Clone, Copy, PartialEq, Eq, Debug)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum Operator {
     Plus,
     Minus,
@@ -41,19 +34,7 @@ pub enum Operator {
     BangEquals,
 }
 
-#[derive(Clone, Copy, PartialEq, Eq, Debug)]
-pub enum Keyword {
-    Let,
-    If,
-    Else,
-    True,
-    False,
-    While,
-    Fn,
-    Return,
-}
-
-#[derive(Clone, Copy, PartialEq, Eq, Debug)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum Separator {
     LeftParen,
     RightParen,
@@ -67,22 +48,39 @@ pub enum Separator {
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum TokenKind {
-    Identifier(String),
+    Number(i64),
+    Operator(Operator),
     Keyword(Keyword),
-    Numeric(NumericLiteral),
-    StringLiteral(String),
-    BooleanLiteral(bool),
-    Operator(Separator),
-    Separator(char),
-    Comment(String),
-    Whitespace,
-    Newline,
-    EOF,
+    Separator(Separator),
     Bad,
+    Whitespace,
+    Identifier,
+    Eof,
+}
+
+impl Display for TokenKind {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        match self {
+            TokenKind::Number(_) => write!(f, "Number"),
+            TokenKind::Operator(op) => write!(f, "{:?}", op),
+            TokenKind::Keyword(kw) => write!(f, "{:?}", kw),
+            TokenKind::Separator(sep) => write!(f, "{:?}", sep),
+            TokenKind::Bad => write!(f, "Bad"),
+            TokenKind::Whitespace => write!(f, "Whitespace"),
+            TokenKind::Identifier => write!(f, "Identifier"),
+            TokenKind::Eof => write!(f, "Eof"),
+        }
+    }
 }
 
 #[derive(Debug, Clone, PartialEq)]
-pub enum NumericLiteral {
-    Integer(i64),
-    Float(f64),
+pub struct Token {
+    pub kind: TokenKind,
+    pub span: TextSpan,
+}
+
+impl Token {
+    pub fn new(kind: TokenKind, span: TextSpan) -> Self {
+        Self { kind, span }
+    }
 }

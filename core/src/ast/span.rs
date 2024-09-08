@@ -1,69 +1,40 @@
-use crate::ast::position::Position;
-use std::cmp::Ordering;
-use std::fmt;
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub struct Span {
-    start: Position,
-    end: Position,
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct TextSpan {
+    pub start: usize,
+    pub end: usize,
+    pub literal: String,
 }
 
-impl Span {
-    #[inline]
-    #[track_caller]
-    #[must_use]
-    pub fn new(start: Position, end: Position) -> Self {
-        assert!(start <= end, "a span cannot start after its end");
-
-        Self { start, end }
-    }
-
-    #[inline]
-    #[must_use]
-    pub const fn start(self) -> Position {
-        self.start
-    }
-
-    #[inline]
-    #[must_use]
-    pub const fn end(self) -> Position {
-        self.end
-    }
-
-    pub fn contains<S>(self, other: S) -> bool
-    where
-        S: Into<Self>,
-    {
-        let other = other.into();
-        self.start <= other.start && self.end >= other.end
-    }
-}
-
-impl From<Position> for Span {
-    fn from(pos: Position) -> Self {
+impl TextSpan {
+    pub fn new(start: usize, end: usize, literal: String) -> Self {
         Self {
-            start: pos,
-            end: pos,
+            start,
+            end,
+            literal,
         }
     }
-}
 
-impl PartialOrd for Span {
-    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-        if self == other {
-            Some(Ordering::Equal)
-        } else if self.end < other.start {
-            Some(Ordering::Less)
-        } else if self.start > other.end {
-            Some(Ordering::Greater)
-        } else {
-            None
+    pub fn combine(mut spans: Vec<TextSpan>) -> TextSpan {
+        if spans.is_empty() {
+            panic!("Cannot combine empty spans")
         }
-    }
-}
+        spans.sort_by(|a, b| a.start.cmp(&b.start));
 
-impl fmt::Display for Span {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "[{}..{}]", self.start, self.end)
+        let start = spans.first().unwrap().start;
+        let end = spans.last().unwrap().end;
+
+        TextSpan::new(
+            start,
+            end,
+            spans.into_iter().map(|span| span.literal).collect(),
+        )
+    }
+
+    pub fn length(&self) -> usize {
+        self.end - self.start
+    }
+
+    pub fn literal<'a>(&self, input: &'a str) -> &'a str {
+        &input[self.start..self.end]
     }
 }
