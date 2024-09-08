@@ -36,7 +36,6 @@ enum Commands {
     },
 }
 
-#[tracing::instrument]
 fn main() {
     let stderr = BufferWriter::stderr(ColorChoice::Always);
     let program = Program::parse();
@@ -48,7 +47,11 @@ fn main() {
 
     match result {
         Ok(_) => {
-            tracing::info!("Program finished successfully");
+            log::info!("Program finished successfully");
+            log::error!("Program finished successfully");
+            log::trace!("Program finished successfully");
+            log::debug!("Program finished successfully");
+            log::warn!("Program finished successfully");
         }
         Err(err) => {
             let mut buffer = stderr.buffer();

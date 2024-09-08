@@ -6,11 +6,11 @@ members = ["cli",
 
 [workspace.dependencies]
 clap = { version = "4.5.17", features = ["derive"] }
-tracing = { version = "0.1.40" }
-tracing-subscriber = { version = "0", features = ["env-filter"] }
-tracing-error = { version = "0.2.0", features = ["traced-error"] }
-thiserror = "1.0.63"
-termcolor = "1.4.1"
+thiserror = { version = "1.0.63" }
+termcolor = { version = "1.4.1" }
+log = { version = "0.4.22" }
+
+vit_logger = { version = "0.1.5" }
 
 # Pulse Crates
 pulse_ast = { path = "core/ast" }

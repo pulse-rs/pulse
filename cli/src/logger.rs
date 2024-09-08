@@ -1,17 +1,16 @@
-use tracing_subscriber::prelude::*;
+use vit_logger::{Config, VitLogger};
 
 pub fn setup_logger(verbose: bool) {
-    tracing_subscriber::fmt()
-        .with_target(verbose)
-        .with_ansi(true)
-        .with_line_number(verbose)
-        .with_file(verbose)
-        .without_time()
-        .with_env_filter(tracing_subscriber::EnvFilter::from(if verbose {
-            "trace"
-        } else {
-            "info"
-        }))
-        .pretty()
-        .init();
+    // Setup log's global logger
+    std::env::set_var("RUST_LOG", if verbose { "trace" } else { "info" });
+    VitLogger::new().init(
+        Config::builder()
+            .text(true)
+            .target(true)
+            .file(true)
+            .line(true)
+            .time(false)
+            .finish()
+            .expect("Error building config"),
+    );
 }

@@ -1,7 +1,7 @@
 use pulse_ast::position::Position;
 use std::io::Write;
+use log::Level;
 use termcolor::{Buffer, Color, WriteColor};
-use tracing::Level;
 use crate::colors::ColorHandler;
 
 #[derive(Debug, Clone, PartialEq, Eq)]

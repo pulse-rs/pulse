@@ -1,4 +1,5 @@
 use crate::diagnostics::Diagnostic;
+use log::Level;
 use termcolor::Buffer;
 use thiserror::Error;
 
@@ -34,14 +35,14 @@ impl Error {
             Self::Generic(title, msg) => Diagnostic {
                 title,
                 text: msg,
-                level: tracing::Level::ERROR,
+                level: Level::Error,
                 location: None,
                 hint: Some("This is a generic error".to_string()),
             },
             Self::Io(msg) => Diagnostic {
                 title: msg,
                 text: None,
-                level: tracing::Level::ERROR,
+                level: Level::Error,
                 location: None,
                 hint: None,
             },
