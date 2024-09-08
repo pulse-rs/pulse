@@ -1,4 +1,5 @@
 mod logger;
+mod panic_handler;
 
 use crate::commands::run::run_command;
 use crate::logger::setup_logger;
@@ -9,7 +10,6 @@ use clap::{
 use std::io;
 use std::io::{stderr, BufWriter, Write};
 use std::path::PathBuf;
-use termcolor::{BufferWriter, ColorChoice};
 
 pub mod commands {
     pub mod run;
@@ -38,6 +38,7 @@ enum Commands {
 }
 
 fn main() {
+    panic_handler::setup_panic_handler();
     let mut stderr = BufWriter::new(stderr());
     let program = Program::parse();
     setup_logger(program.verbose);

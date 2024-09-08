@@ -2,7 +2,6 @@ use colored::Colorize;
 use log::Level;
 use pulse_ast::position::Position;
 use std::io::{BufWriter, Stderr, Write};
-use termcolor::{Buffer, Color, WriteColor};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Diagnostic {

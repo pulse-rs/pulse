@@ -10,6 +10,7 @@ thiserror = { version = "1.0.63" }
 log = { version = "0.4.22" }
 vit_logger = { version = "0.1.5" }
 colored = { version = "2.1.0" }
+backtrace = { version = "0.3.73" }
 
 # Pulse Crates
 pulse_ast = { path = "core/ast" }

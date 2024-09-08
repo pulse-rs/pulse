@@ -5,9 +5,10 @@ edition = "2021"
 
 [dependencies]
 clap = { workspace = true }
-termcolor = { workspace = true }
 log = { workspace = true }
 vit_logger = { workspace = true }
+colored = { workspace = true }
+backtrace = { workspace = true }
 
 # Pulse Crates
 pulse_core = { workspace = true }
