@@ -7,7 +7,7 @@ pub fn setup_logger(verbose: bool) {
         Config::builder()
             .text(true)
             .target(true)
-            .file(true)
+            .file(verbose)
             .line(true)
             .time(false)
             .finish()

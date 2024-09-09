@@ -1,3 +1,4 @@
+use crate::ast::span::TextSpan;
 use crate::error::diagnostics::Diagnostic;
 use log::Level;
 use std::io::{BufWriter, Stderr};
@@ -15,6 +16,8 @@ pub enum Error {
     InvalidExtension(String),
     #[error("Provided file does not exist")]
     FileDoesNotExist,
+    #[error("Failed to parse tokens: {0}")]
+    ParseError(String, TextSpan, String),
 }
 
 impl From<String> for Error {
@@ -50,6 +53,7 @@ impl Error {
                 level: Level::Error,
                 location: None,
                 hint: Some("This is a generic error".to_string()),
+                content: None,
             },
             Self::Io(msg) => Diagnostic {
                 title: msg.to_string(),
@@ -57,6 +61,7 @@ impl Error {
                 level: Level::Error,
                 location: None,
                 hint: None,
+                content: None,
             },
             Self::NotImplemented(_) => Diagnostic {
                 title: string,
@@ -64,6 +69,7 @@ impl Error {
                 level: Level::Error,
                 location: None,
                 hint: Some("Check if there is an issue open for it on the GitHub.".to_string()),
+                content: None,
             },
             Self::InvalidExtension(_) => Diagnostic {
                 title: string,
@@ -71,6 +77,7 @@ impl Error {
                 level: Level::Error,
                 location: None,
                 hint: None,
+                content: None,
             },
             Self::FileDoesNotExist => Diagnostic {
                 title: string,
@@ -78,6 +85,15 @@ impl Error {
                 level: Level::Error,
                 location: None,
                 hint: None,
+                content: None,
+            },
+            Self::ParseError(msg, span, content) => Diagnostic {
+                title: msg,
+                text: None,
+                level: Level::Error,
+                location: Some(span),
+                hint: None,
+                content: Some(content),
             },
         }
     }

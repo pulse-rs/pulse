@@ -9,7 +9,7 @@ pub enum Keyword {
     True,
     False,
     While,
-    Func,
+    Fn,
     Return,
 }
 
@@ -61,14 +61,62 @@ pub enum TokenKind {
 impl Display for TokenKind {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         match self {
-            TokenKind::Number(_) => write!(f, "Number"),
-            TokenKind::Operator(op) => write!(f, "{:?}", op),
-            TokenKind::Keyword(kw) => write!(f, "{:?}", kw),
-            TokenKind::Separator(sep) => write!(f, "{:?}", sep),
+            TokenKind::Number(_) => write!(f, "number"),
+            TokenKind::Operator(op) => {
+                let op_str = match op {
+                    Operator::Plus => "+",
+                    Operator::Minus => "-",
+                    Operator::Asterisk => "*",
+                    Operator::Slash => "/",
+                    Operator::Equals => "=",
+                    Operator::Ampersand => "&",
+                    Operator::Pipe => "|",
+                    Operator::Caret => "^",
+                    Operator::DoubleAsterisk => "**",
+                    Operator::Percent => "%",
+                    Operator::Tilde => "~",
+                    Operator::GreaterThan => ">",
+                    Operator::LessThan => "<",
+                    Operator::GreaterThanEquals => ">=",
+                    Operator::LessThanEquals => "<=",
+                    Operator::EqualsEquals => "==",
+                    Operator::BangEquals => "!=",
+                };
+
+                write!(f, "{}", op_str)
+            }
+            TokenKind::Keyword(kw) => {
+                let kw_str = match kw {
+                    Keyword::Let => "let",
+                    Keyword::If => "if",
+                    Keyword::Else => "else",
+                    Keyword::True => "true",
+                    Keyword::False => "false",
+                    Keyword::While => "while",
+                    Keyword::Fn => "fn",
+                    Keyword::Return => "return",
+                };
+
+                write!(f, "{}", kw_str)
+            }
+            TokenKind::Separator(sep) => {
+                let sep_str = match sep {
+                    Separator::LeftParen => "(",
+                    Separator::RightParen => ")",
+                    Separator::OpenBrace => "{",
+                    Separator::CloseBrace => "}",
+                    Separator::Comma => ",",
+                    Separator::Colon => ":",
+                    Separator::SemiColon => ";",
+                    Separator::Arrow => "->",
+                };
+
+                write!(f, "{}", sep_str)
+            }
             TokenKind::Bad => write!(f, "Bad"),
-            TokenKind::Whitespace => write!(f, "Whitespace"),
-            TokenKind::Identifier => write!(f, "Identifier"),
-            TokenKind::Eof => write!(f, "Eof"),
+            TokenKind::Whitespace => write!(f, "whitespace"),
+            TokenKind::Identifier => write!(f, "identifier"),
+            TokenKind::Eof => write!(f, "EOF"),
         }
     }
 }

@@ -26,7 +26,7 @@ pub fn run_command(path: PathBuf) -> Result<()> {
 
     let build = BuildProcess::with_input(source);
 
-    build.compile();
+    build.compile()?;
 
     Ok(())
 }

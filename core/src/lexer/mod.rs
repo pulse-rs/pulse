@@ -39,7 +39,7 @@ impl<'a> Lexer<'a> {
                 "true" => TokenKind::Keyword(Keyword::True),
                 "false" => TokenKind::Keyword(Keyword::False),
                 "while" => TokenKind::Keyword(Keyword::While),
-                "func" => TokenKind::Keyword(Keyword::Func),
+                "fn" => TokenKind::Keyword(Keyword::Fn),
                 "return" => TokenKind::Keyword(Keyword::Return),
                 _ => TokenKind::Identifier,
             }
