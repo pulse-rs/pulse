@@ -16,7 +16,7 @@ pub fn resolve_file(path: PathBuf) -> Result<String> {
     }
 
     Ok(std::fs::read_to_string(path)
-        .map_err(|err| Error::io(err))?
+        .map_err(Error::io)?
         .to_string())
 }
 

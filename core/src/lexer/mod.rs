@@ -1,3 +1,4 @@
+use crate::ast::position::Position;
 use crate::ast::span::TextSpan;
 use crate::lexer::token::{Keyword, Operator, Separator, Token, TokenKind};
 
@@ -5,7 +6,8 @@ pub mod token;
 
 pub struct Lexer<'a> {
     input: &'a str,
-    current_pos: usize,
+    pub pos: Position,
+    pub current_pos: usize,
 }
 
 impl<'a> Lexer<'a> {
@@ -13,19 +15,22 @@ impl<'a> Lexer<'a> {
         Self {
             input,
             current_pos: 0,
+            pos: Position::new(0, 0, 0),
         }
     }
 
     pub fn next_token(&mut self) -> Option<Token> {
-        if self.current_pos == self.input.len() {
+        if self.current_pos >= self.input.len() {
             self.current_pos += 1;
             return Some(Token::new(
                 TokenKind::Eof,
-                TextSpan::new(0, 0, "\0".to_string()),
+                TextSpan::new(self.pos, self.pos, "\0".to_string()),
             ));
         }
+
         let c = self.current_char()?;
-        let start = self.current_pos;
+        let start_pos = self.pos;
+
         let kind = if Self::is_number_start(&c) {
             TokenKind::Number(self.consume_number())
         } else if Self::is_whitespace(&c) {
@@ -47,10 +52,12 @@ impl<'a> Lexer<'a> {
             self.consume_punctuation()
         };
 
-        let end = self.current_pos;
-        let literal = self.input[start..end].to_string();
-        Some(Token::new(kind, TextSpan::new(start, end, literal)))
+        let end_pos = self.pos;
+        let literal = self.input[start_pos.index..end_pos.index].to_string();
+
+        Some(Token::new(kind, TextSpan::new(start_pos, end_pos, literal)))
     }
+
     fn consume_punctuation(&mut self) -> TokenKind {
         let c = self.consume().unwrap();
         match c {
@@ -144,6 +151,8 @@ impl<'a> Lexer<'a> {
         let c = self.current_char();
         self.current_pos += 1;
 
+        self.update_position(c.unwrap());
+
         c
     }
 
@@ -171,5 +180,15 @@ impl<'a> Lexer<'a> {
             }
         }
         number
+    }
+
+    fn update_position(&mut self, c: char) {
+        if c == '\n' {
+            self.pos.line += 1;
+            self.pos.column = 0;
+        } else {
+            self.pos.column += 1;
+        }
+        self.pos.index += 1;
     }
 }

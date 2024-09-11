@@ -1,3 +1,6 @@
+use crate::error::error::Error::InvalidType;
+use crate::lexer::token::Token;
+use crate::Result;
 use std::fmt::{Display, Formatter};
 
 #[derive(Debug, Clone)]
@@ -27,10 +30,7 @@ impl Type {
     pub fn is_assignable_to(&self, other: &Type) -> bool {
         matches!(
             (self, other),
-            (Type::Int, Type::Int)
-                | (Type::Bool, Type::Bool)
-                | (Type::Error, _)
-                | (_, Type::Error)
+            (Type::Int, Type::Int) | (Type::Bool, Type::Bool) | (Type::Error, _) | (_, Type::Error)
         )
     }
 
@@ -41,5 +41,18 @@ impl Type {
             "void" => Some(Type::Void),
             _ => None,
         }
+    }
+}
+
+pub fn parse_type(s: &Token, content: &String) -> Result<Type> {
+    let name = Type::from_str(&s.span.literal);
+
+    match name {
+        Some(t) => Ok(t),
+        None => Err(InvalidType(
+            s.span.literal.clone(),
+            s.span.clone(),
+            content.clone(),
+        )),
     }
 }

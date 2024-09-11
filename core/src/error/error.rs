@@ -18,6 +18,10 @@ pub enum Error {
     FileDoesNotExist,
     #[error("Failed to parse tokens: {0}")]
     ParseError(String, TextSpan, String),
+    #[error("Found invalid type: {0}")]
+    InvalidType(String, TextSpan, String),
+    #[error("Function {0} already exists")]
+    FunctionAlreadyExists(String, TextSpan, String),
 }
 
 impl From<String> for Error {
@@ -89,6 +93,15 @@ impl Error {
             },
             Self::ParseError(msg, span, content) => Diagnostic {
                 title: msg,
+                text: None,
+                level: Level::Error,
+                location: Some(span),
+                hint: None,
+                content: Some(content),
+            },
+            Self::FunctionAlreadyExists(msg, span, content)
+            | Self::InvalidType(msg, span, content) => Diagnostic {
+                title: string,
                 text: None,
                 level: Level::Error,
                 location: Some(span),

@@ -1,24 +1,22 @@
+use crate::ast::position::Position;
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct TextSpan {
-    pub start: usize,
-    pub end: usize,
+    pub start: Position,
+    pub end: Position,
     pub literal: String,
 }
 
 impl TextSpan {
-    pub fn new(start: usize, end: usize, literal: String) -> Self {
-        Self {
-            start,
-            end,
-            literal,
-        }
+    pub fn new(start: Position, end: Position, literal: String) -> Self {
+        Self { start, end, literal }
     }
 
     pub fn combine(mut spans: Vec<TextSpan>) -> TextSpan {
         if spans.is_empty() {
             panic!("Cannot combine empty spans")
         }
-        spans.sort_by(|a, b| a.start.cmp(&b.start));
+        spans.sort_by(|a, b| a.start.index.cmp(&b.start.index));
 
         let start = spans.first().unwrap().start;
         let end = spans.last().unwrap().end;
@@ -31,10 +29,10 @@ impl TextSpan {
     }
 
     pub fn length(&self) -> usize {
-        self.end - self.start
+        self.end.index - self.start.index
     }
 
     pub fn literal<'a>(&self, input: &'a str) -> &'a str {
-        &input[self.start..self.end]
+        &input[self.start.index..self.end.index]
     }
 }

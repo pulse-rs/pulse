@@ -30,6 +30,11 @@ impl BuildProcess {
             if token.kind == TokenKind::Whitespace {
                 continue;
             }
+            if token.kind == TokenKind::Eof {
+                tokens.push(token);
+                break;
+            }
+            println!("{:?}", token);
             tokens.push(token);
         }
         log::debug!("Finished lexical analysis with {} tokens", tokens.len());
@@ -39,6 +44,7 @@ impl BuildProcess {
         match parser.parse() {
             Ok(_) => {
                 log::debug!("Finished parsing");
+                println!("{:?}", self.ast);
 
                 Ok(())
             }

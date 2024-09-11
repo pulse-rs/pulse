@@ -4,7 +4,7 @@ use crate::ast::ID;
 #[derive(Debug, Clone)]
 pub enum ItemKind {
     Stmt(ID),
-    Function//(FunctionDeclaration),
+    Function(FunctionDeclaration),
 }
 
 #[derive(Debug, Clone)]
