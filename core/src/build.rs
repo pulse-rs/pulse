@@ -44,7 +44,6 @@ impl BuildProcess {
         match parser.parse() {
             Ok(_) => {
                 log::debug!("Finished parsing");
-                println!("{:?}", self.ast);
 
                 Ok(())
             }

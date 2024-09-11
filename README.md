@@ -28,6 +28,8 @@ Pull requests and stars are always welcome. See [`contributing.md`](.github/cont
 
 Made with [contrib.rocks](https://contrib.rocks).
 
+## Most parser and lexer code is based on [natrixcc](https://github.com/julian-hartl/natrixcc)
+
 ## License
 
 [MIT][license] © [malezjaa][author]
