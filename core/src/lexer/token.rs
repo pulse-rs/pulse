@@ -44,11 +44,13 @@ pub enum Separator {
     Colon,
     SemiColon,
     Arrow,
+    Quote,
 }
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum TokenKind {
     Number(i64),
+    String(String),
     Operator(Operator),
     Keyword(Keyword),
     Separator(Separator),
@@ -62,6 +64,7 @@ impl Display for TokenKind {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         match self {
             TokenKind::Number(_) => write!(f, "number"),
+            TokenKind::String(_) => write!(f, "string"),
             TokenKind::Operator(op) => {
                 let op_str = match op {
                     Operator::Plus => "+",
@@ -109,6 +112,7 @@ impl Display for TokenKind {
                     Separator::Colon => ":",
                     Separator::SemiColon => ";",
                     Separator::Arrow => "->",
+                    Separator::Quote => "\"",
                 };
 
                 write!(f, "{}", sep_str)

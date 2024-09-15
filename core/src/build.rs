@@ -1,9 +1,13 @@
+use crate::ast::visitor::ASTWalker;
 use crate::ast::Ast;
-use crate::error::error::Error::ParseError;
+use crate::error::error::Error::{MainFunctionParameters, ParseError};
 use crate::global_context::GlobalContext;
+// use crate::ir::IRCompiler;
 use crate::lexer::token::{Token, TokenKind};
 use crate::lexer::Lexer;
 use crate::parser::Parser;
+use crate::scopes::Scopes;
+use crate::semantic::types::TypeAnalyzer;
 use crate::Result;
 
 pub struct BuildProcess {
@@ -21,7 +25,7 @@ impl BuildProcess {
         }
     }
 
-    pub fn compile(self) -> Result<()> {
+    pub fn compile(&mut self) -> Result<()> {
         log::debug!("Starting compilation process");
         let mut tokens: Vec<Token> = vec![];
         let mut lexer = Lexer::new(&self.input);
@@ -34,17 +38,27 @@ impl BuildProcess {
                 tokens.push(token);
                 break;
             }
-            println!("{:?}", token);
             tokens.push(token);
         }
         log::debug!("Finished lexical analysis with {} tokens", tokens.len());
 
-        let mut parser = Parser::new(tokens, self.input, self.ast, self.ctx);
+        let mut parser = Parser::new(tokens, self.input.clone(), self.ast, self.ctx);
 
         match parser.parse() {
             Ok(_) => {
                 log::debug!("Finished parsing");
+                let scopes = Scopes::new(self.ctx.clone());
+                let mut type_analyzer = TypeAnalyzer {
+                    content: self.input.clone(),
+                    scopes,
+                };
 
+                for (id, _) in self.ast.items.clone().iter() {
+                    type_analyzer.visit_item(self.ast, *id)?;
+                }
+
+                // let mut ir_compiler = IRCompiler::new(self.ast, self.ctx);
+                // ir_compiler.compile()?;
                 Ok(())
             }
             Err(e) => {

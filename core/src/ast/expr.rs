@@ -183,6 +183,12 @@ pub struct NumberExpr {
 }
 
 #[derive(Debug, Clone)]
+pub struct StringExpr {
+    pub string: String,
+    pub token: Token,
+}
+
+#[derive(Debug, Clone)]
 pub struct ParenthesizedExpr {
     pub left_paren: Token,
     pub inner: ID,
@@ -202,6 +208,13 @@ pub enum ExprKind {
     If(IfExpr),
     Block(BlockExpr),
     Error(TextSpan),
+    String(StringExpr),
+}
+
+impl ExprKind {
+    pub fn is_binary(&self) -> bool {
+        matches!(self, ExprKind::Binary(_))
+    }
 }
 
 #[derive(Debug, Clone)]
@@ -255,7 +268,28 @@ impl Expr {
         Expr { kind, id, ty }
     }
 
-    // pub fn span(&self, ast: &Ast) -> TextSpan {
-    //     match &self.kind {}
-    // }
+    pub fn span(&self, ast: &Ast) -> TextSpan {
+        match &self.kind {
+            ExprKind::Number(number) => number.token.span.clone(),
+            ExprKind::Boolean(boolean) => boolean.token.span.clone(),
+            ExprKind::String(string) => string.token.span.clone(),
+            ExprKind::Binary(binary) => {
+                let left = ast.query_expr(binary.left).span(ast);
+                let operator = binary.operator.token.span.clone();
+                let right = ast.query_expr(binary.right).span(ast);
+                TextSpan::combine(vec![left, operator, right])
+            }
+            ExprKind::Variable(var) => var.identifier.span.clone(),
+            ExprKind::Call(call) => combine_call_expr_span(call),
+            _ => unreachable!(),
+        }
+    }
+}
+
+pub fn combine_call_expr_span(call: &CallExpr) -> TextSpan {
+    TextSpan::combine(vec![
+        call.callee.span.clone(),
+        call.left_paren.span.clone(),
+        call.right_paren.span.clone(),
+    ])
 }

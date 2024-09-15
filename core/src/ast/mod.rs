@@ -1,6 +1,6 @@
 use crate::ast::expr::{
     AssignExpr, BinOperator, BinaryExpr, BlockExpr, BoolExpr, CallExpr, ElseBranch, Expr, ExprKind,
-    IfExpr, NumberExpr, ParenthesizedExpr, UnOperator, UnaryExpr, VarExpr,
+    IfExpr, NumberExpr, ParenthesizedExpr, StringExpr, UnOperator, UnaryExpr, VarExpr,
 };
 use crate::ast::function::{Body, FunctionParameter, FunctionType, TypeAnnotation};
 use crate::ast::item::{Item, ItemKind};
@@ -17,6 +17,7 @@ pub mod item;
 pub mod position;
 pub mod span;
 pub mod stmt;
+pub mod visitor;
 
 pub type ID = u32;
 
@@ -60,7 +61,7 @@ impl Ast {
     }
 
     pub fn new_stmt(&mut self, kind: StmtKind) -> ID {
-        let id = new_id(self.items.len() as u32);
+        let id = new_id(self.stmts.len() as u32);
         let stmt = Stmt::new(kind, id);
         self.stmts.insert(stmt.id, stmt);
 
@@ -105,7 +106,7 @@ impl Ast {
         &mut self,
         func_keyword: Token,
         identifier: Token,
-        parameters: Vec<FunctionParameter>,
+        parameters: Vec<ID>,
         body: Body,
         return_type: Option<FunctionType>,
         function_id: ID,
@@ -135,6 +136,10 @@ impl Ast {
 
     pub fn number_expression(&mut self, token: Token, number: i64) -> &Expr {
         self.new_expr(ExprKind::Number(NumberExpr { number, token }))
+    }
+
+    pub fn string_expression(&mut self, token: Token, string: String) -> &Expr {
+        self.new_expr(ExprKind::String(StringExpr { token, string }))
     }
 
     pub fn boolean_expression(&mut self, token: Token, value: bool) -> &Expr {
@@ -234,8 +239,55 @@ impl Ast {
             right,
         }))
     }
+    
+    pub fn query_expr_mut(&mut self, id: ID) -> &mut Expr {
+        self.exprs.get_mut(&id).unwrap()
+    }
+
+    pub fn set_variable(&mut self, expr_id: ID, variable_idx: ID) {
+        let expr = self.query_expr_mut(expr_id);
+        match &mut expr.kind {
+            ExprKind::Assignment(assign_expr) => {
+                assign_expr.variable_idx = variable_idx;
+            }
+            ExprKind::Variable(var_expr) => {
+                var_expr.variable_idx = variable_idx;
+            }
+            _ => unreachable!("Expected assignment or variable expression"),
+        }
+    }
 
     pub fn query_stmt(&self, id: ID) -> &Stmt {
         self.stmts.get(&id).unwrap()
+    }
+
+    pub fn query_item(&self, id: ID) -> &Item {
+        self.items.get(&id).unwrap()
+    }
+
+    pub fn query_expr(&self, id: ID) -> &Expr {
+        self.exprs.get(&id).unwrap()
+    }
+
+    pub fn visit(&mut self, visitor: &mut dyn visitor::ASTWalker) {
+        for item in self.items.clone().keys() {
+            visitor
+                .visit_item(self, *item)
+                .expect("Failed to visit item");
+        }
+    }
+
+    pub fn set_var_stmt(&mut self, stmt_id: &ID, var_id: ID) {
+        let stmt = self.stmts.get_mut(stmt_id).unwrap();
+        if let StmtKind::Let(let_stmt) = &mut stmt.kind {
+            let_stmt.variable_id = var_id;
+        } else {
+            panic!("Expected let statement");
+        }
+    }
+    
+    pub fn update_type(&mut self, expr_id: ID, type_: Type) {
+        let expr = self.exprs.get_mut(&expr_id).unwrap();
+        expr.ty = type_;
     }
 }

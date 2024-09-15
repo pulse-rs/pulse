@@ -33,6 +33,9 @@ impl<'a> Lexer<'a> {
 
         let kind = if Self::is_number_start(&c) {
             TokenKind::Number(self.consume_number())
+        } else if Self::is_string_start(&c) {
+            self.consume();
+            TokenKind::String(self.consume_string())
         } else if Self::is_whitespace(&c) {
             self.consume();
             TokenKind::Whitespace
@@ -105,7 +108,7 @@ impl<'a> Lexer<'a> {
             ',' => TokenKind::Separator(Separator::Comma),
             ':' => TokenKind::Separator(Separator::Colon),
             ';' => TokenKind::Separator(Separator::SemiColon),
-
+            '"' => TokenKind::Separator(Separator::Quote),
             _ => TokenKind::Bad,
         }
     }
@@ -130,6 +133,24 @@ impl<'a> Lexer<'a> {
 
     fn is_number_start(c: &char) -> bool {
         c.is_digit(10)
+    }
+
+    fn is_string_start(c: &char) -> bool {
+        c == &'\"'
+    }
+
+    fn consume_string(&mut self) -> String {
+        let mut string = String::new();
+        while let Some(c) = self.current_char() {
+            if c != '\"' {
+                self.consume().unwrap();
+                string.push(c);
+            } else {
+                self.consume();
+                break;
+            }
+        }
+        string
     }
 
     fn is_identifier_start(c: &char) -> bool {

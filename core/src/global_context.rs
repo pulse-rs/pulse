@@ -6,11 +6,14 @@ use crate::types::Type;
 use crate::Result;
 use indexmap::IndexMap;
 
+#[derive(Debug, Clone)]
 pub struct Variable {
     pub name: String,
     pub type_: Type,
+    pub shadowing: bool,
 }
 
+#[derive(Debug, Clone)]
 pub struct GlobalContext {
     pub global_variables: Vec<Variable>,
     pub variables: IndexMap<ID, Variable>,
@@ -26,20 +29,38 @@ impl GlobalContext {
         }
     }
 
-    pub fn add_variable(&mut self, name: String, type_: Type) {
+    pub fn add_variable(&mut self, name: String, type_: Type, shadowing: bool, global: bool) -> ID {
         let id = new_id(self.variables.len() as u32);
-        self.variables.insert(id, Variable { name, type_ });
-    }
+        self.variables.insert(
+            id,
+            Variable {
+                name,
+                type_,
+                shadowing,
+            },
+        );
 
-    pub fn add_global_variable(&mut self, name: String, type_: Type) -> Result<ID> {
-        let id = new_id(self.variables.len() as u32);
-        self.global_variables.push(Variable { name, type_ });
+        if global {
+            self.global_variables.push(
+                self.variables
+                    .get(&id)
+                    .expect("Variable was not inserted into the global context")
+                    .clone(),
+            );
+        }
 
-        Ok(id)
+        id
     }
 
     pub fn get_global_variable(&self, name: &str) -> Option<&Variable> {
         self.global_variables.iter().find(|var| var.name == name)
+    }
+    
+    pub fn lookup_var_id(&self, identifier: &str) -> Option<ID> {
+        self.variables
+            .iter()
+            .find(|(_, var)| var.name == identifier)
+            .map(|(id, _)| *id)
     }
 
     pub fn lookup_function(&self, identifier: &str) -> Option<ID> {

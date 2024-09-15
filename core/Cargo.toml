@@ -8,3 +8,5 @@ thiserror = { workspace = true }
 colored = { workspace = true }
 log = { workspace = true }
 indexmap = { workspace = true }
+#inkwell = { workspace = true }
+#llvm-sys = { version = "180" }

@@ -22,6 +22,20 @@ pub enum Error {
     InvalidType(String, TextSpan, String),
     #[error("Function {0} already exists")]
     FunctionAlreadyExists(String, TextSpan, String),
+    #[error("Main function cannot have parameters")]
+    MainFunctionParameters,
+    #[error("Type mismatch. Attempted to assign {0} to {1}")]
+    TypeMismatch(String, String, TextSpan, String),
+    #[error("Cannot find {0} in the current scope")]
+    NotFound(String, TextSpan, String),
+    #[error("Illegal return statement")]
+    IllegalReturn(TextSpan, String),
+    #[error("Tried to call undeclared function: {0}")]
+    CallToUndeclaredFunction(String, TextSpan, String),
+    #[error("Invalid arguments provided to call expresion. Expected {0}, got {1}")]
+    InvalidArguments(usize, usize, TextSpan, String),
+    // #[error("IR error: {0}")]
+    // IR(#[from] inkwell::builder::BuilderError),
 }
 
 impl From<String> for Error {
@@ -56,7 +70,7 @@ impl Error {
                 text: msg,
                 level: Level::Error,
                 location: None,
-                hint: Some("This is a generic error".to_string()),
+                hint: None,
                 content: None,
             },
             Self::Io(msg) => Diagnostic {
@@ -99,8 +113,42 @@ impl Error {
                 hint: None,
                 content: Some(content),
             },
-            Self::FunctionAlreadyExists(msg, span, content)
-            | Self::InvalidType(msg, span, content) => Diagnostic {
+            Self::FunctionAlreadyExists(_, span, content)
+            | Self::InvalidType(_, span, content)
+            | Self::NotFound(_, span, content)
+            | Self::CallToUndeclaredFunction(_, span, content) => Diagnostic {
+                title: string,
+                text: None,
+                level: Level::Error,
+                location: Some(span),
+                hint: None,
+                content: Some(content),
+            },
+            Self::IllegalReturn(span, content) => Diagnostic {
+                title: string,
+                text: None,
+                level: Level::Error,
+                location: Some(span),
+                hint: None,
+                content: Some(content),
+            },
+            Self::MainFunctionParameters => Diagnostic {
+                title: string,
+                text: None,
+                level: Level::Error,
+                location: None,
+                hint: None,
+                content: None,
+            },
+            Self::TypeMismatch(_, _, span, content) => Diagnostic {
+                title: string,
+                text: None,
+                level: Level::Error,
+                location: Some(span),
+                hint: None,
+                content: Some(content),
+            },
+            Self::InvalidArguments(_, _, span, content) => Diagnostic {
                 title: string,
                 text: None,
                 level: Level::Error,

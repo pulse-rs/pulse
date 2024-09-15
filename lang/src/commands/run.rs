@@ -24,7 +24,7 @@ pub fn run_command(path: PathBuf) -> Result<()> {
     let source = resolve_file(path)?;
     log::debug!("Running command with source: {}", source);
 
-    let build = BuildProcess::with_input(source);
+    let mut build = BuildProcess::with_input(source);
 
     build.compile()?;
 

@@ -1,4 +1,5 @@
-use crate::ast::ID;
+use crate::ast::stmt::StmtKind;
+use crate::ast::{Ast, ID};
 use crate::lexer::token::Token;
 use crate::types::Type;
 
@@ -26,7 +27,7 @@ impl FunctionType {
 pub struct FunctionDeclaration {
     pub func_keyword: Token,
     pub identifier: Token,
-    pub parameters: Vec<FunctionParameter>,
+    pub parameters: Vec<ID>,
     pub body: Body,
     pub return_type: Option<FunctionType>,
     pub id: ID,
@@ -59,4 +60,23 @@ impl Body {
             closing_brace,
         }
     }
+
+    pub fn iter(&self) -> impl Iterator<Item = &ID> {
+        self.stmts.iter()
+    }
+
+    pub fn ty(&self, ast: &Ast) -> Option<Type> {
+        get_type_of_last_expr(self.stmts.clone(), ast)
+    }
+}
+
+pub fn get_type_of_last_expr(body: Vec<ID>, ast: &Ast) -> Option<Type> {
+    body.last().and_then(|stmt| {
+        let stmt = ast.query_stmt(*stmt);
+        if let StmtKind::Expr(expr_id) = &stmt.kind {
+            Some(ast.query_expr(*expr_id).ty.clone())
+        } else {
+            None
+        }
+    })
 }

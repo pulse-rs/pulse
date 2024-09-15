@@ -6,7 +6,6 @@ use crate::ast::expr::{
 };
 use crate::ast::function::{Body, FunctionParameter, FunctionType, TypeAnnotation};
 use crate::ast::item::ItemKind;
-use crate::ast::stmt::Stmt;
 use crate::ast::{item::Item, Ast, ID};
 use crate::error::error::Error::ParseError;
 use crate::global_context::GlobalContext;
@@ -63,7 +62,6 @@ impl Parser<'_> {
             _ => {
                 let statement_id = self.parse_statement()?;
                 self.ast.new_item(ItemKind::Stmt(statement_id));
-                self.consume();
 
                 Ok(())
             }
@@ -250,10 +248,13 @@ impl Parser<'_> {
 
     pub fn parse_primary_expression(&mut self) -> Result<ID> {
         let token = self.consume().clone();
-        let id = match token.kind {
+        let id = match &token.kind {
             TokenKind::Separator(Separator::OpenBrace) => self.parse_block_expression(token),
             TokenKind::Keyword(Keyword::If) => self.parse_if_expression(token),
-            TokenKind::Number(number) => Ok(self.ast.number_expression(token, number)),
+            TokenKind::Number(number) => Ok(self.ast.number_expression(token.clone(), *number)),
+            TokenKind::String(string) => {
+                Ok(self.ast.string_expression(token.clone(), string.clone()))
+            }
             TokenKind::Separator(Separator::LeftParen) => Ok({
                 let expr = self.parse_expression()?;
                 let left_paren = token;
@@ -278,7 +279,7 @@ impl Parser<'_> {
                 Ok(self.ast.boolean_expression(token, value))
             }
             _ => {
-                //     TODO: handle error
+                // TODO: handle error
                 Err(ParseError(
                     format!("Unexpected token: {}", token.kind.to_string().cyan()),
                     token.span,
@@ -381,7 +382,9 @@ impl Parser<'_> {
         let mut body = vec![];
 
         while self.current().kind != TokenKind::Separator(Separator::CloseBrace) && !self.is_eof() {
-            body.push(self.parse_statement()?);
+            let stmt = self.parse_statement()?;
+
+            body.push(stmt);
         }
 
         let close_brace = self
@@ -392,8 +395,12 @@ impl Parser<'_> {
         for param in &params {
             let new_type = parse_type(&param.type_annotation.type_name, &self.content)?;
             let id = {
-                self.global_scope
-                    .add_global_variable(param.identifier.span.literal.clone(), new_type.clone())?
+                self.global_scope.add_variable(
+                    param.identifier.span.literal.clone(),
+                    new_type.clone(),
+                    false,
+                    false,
+                )
             };
             new_params.push(id);
         }
@@ -408,13 +415,19 @@ impl Parser<'_> {
         let func = self.global_scope.new_function(
             identifier.clone(),
             body.clone(),
-            new_params,
+            new_params.clone(),
             typ,
             &self.content,
         )?;
 
-        self.ast
-            .new_func_item(func_keyword, identifier, params, body, return_type, func)
+        self.ast.new_func_item(
+            func_keyword,
+            identifier,
+            new_params,
+            body,
+            return_type,
+            func,
+        )
     }
 
     fn is_eof(&self) -> bool {
