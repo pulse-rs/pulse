@@ -22,7 +22,7 @@ impl LocalScope {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Scopes {
     pub local: Vec<LocalScope>,
     pub global: GlobalContext,

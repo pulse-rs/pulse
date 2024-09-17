@@ -21,10 +21,10 @@ pub fn resolve_file(path: PathBuf) -> Result<String> {
 }
 
 pub fn run_command(path: PathBuf) -> Result<()> {
-    let source = resolve_file(path)?;
+    let source = resolve_file(path.clone())?;
     log::debug!("Running command with source: {}", source);
 
-    let mut build = BuildProcess::with_input(source);
+    let mut build = BuildProcess::new(source, path);
 
     build.compile()?;
 

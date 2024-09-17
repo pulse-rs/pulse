@@ -51,6 +51,10 @@ impl GlobalContext {
 
         id
     }
+    
+    pub fn lookup_var(&self, id: ID) -> Option<&Variable> {
+        self.variables.get(&id)
+    }
 
     pub fn get_global_variable(&self, name: &str) -> Option<&Variable> {
         self.global_variables.iter().find(|var| var.name == name)

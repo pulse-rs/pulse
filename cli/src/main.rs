@@ -1,3 +1,5 @@
+#![allow(warnings, unused)]
+
 mod logger;
 mod panic_handler;
 
@@ -7,10 +9,10 @@ use clap::{
     builder::{styling, PossibleValuesParser, Styles, TypedValueParser},
     Args, Parser, Subcommand, ValueHint,
 };
+use pulse_core::error::error::Error::NotImplemented;
 use std::io;
 use std::io::{stderr, BufWriter, Write};
 use std::path::PathBuf;
-use pulse_core::error::error::Error::NotImplemented;
 
 pub mod commands {
     pub mod run;

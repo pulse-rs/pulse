@@ -1,4 +1,5 @@
 #![feature(let_chains)]
+#![allow(warnings, unused)]
 
 use crate::error::error::Error;
 
