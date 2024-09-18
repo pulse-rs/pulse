@@ -273,10 +273,11 @@ impl ASTWalker for IRCompiler<'_, '_> {
             }
         }
 
-        let list = self.parse_body(ast, func_decl.body.clone())?;
+        let list = self.parse_body(ast, func_decl.body.clone())?.clone();
         let return_value = list
             .last()
             .expect("Expected at least one expression in the function body");
+
         self.builder.build_return(Some(return_value));
 
         fn_value.verify(true);
