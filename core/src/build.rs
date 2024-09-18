@@ -2,20 +2,16 @@ use crate::ast::visitor::ASTWalker;
 use crate::ast::Ast;
 use crate::error::error::Error::{MainFunctionParameters, ParseError};
 use crate::global_context::GlobalContext;
-use crate::ir::interner::Interner;
-use crate::ir::passes::run_passes_on;
-use crate::ir::IRCompiler;
-use inkwell::context::Context;
-use inkwell::OptimizationLevel;
-use log::debug;
-use std::path::PathBuf;
-// use crate::ir::IRCompiler;
 use crate::lexer::token::{Token, TokenKind};
 use crate::lexer::Lexer;
 use crate::parser::Parser;
 use crate::scopes::Scopes;
 use crate::semantic::types::TypeAnalyzer;
 use crate::Result;
+use inkwell::context::Context;
+use inkwell::OptimizationLevel;
+use log::debug;
+use std::path::PathBuf;
 
 pub struct BuildProcess {
     pub input: String,
@@ -64,45 +60,6 @@ impl BuildProcess {
 
                 for (id, _) in self.ast.items.clone().iter() {
                     type_analyzer.visit_item(self.ast, *id)?;
-                }
-                let mut interner = Interner::new();
-                log::debug!("Initialized string interner");
-                let file_id = interner.intern(&self.file.to_string_lossy());
-                log::debug!("Interned main file id: {:?}", file_id);
-
-                let context = Context::create();
-                let builder = context.create_builder();
-                let module = context.create_module("main");
-                let mut compiler = IRCompiler {
-                    context: &context,
-                    builder: &builder,
-                    module: &module,
-                    scopes: &scopes,
-                    variables: Default::default(),
-                    fn_val: None,
-                };
-
-                compiler.compile(self.ast)?;
-
-                run_passes_on(&module);
-
-                log::debug!(
-                    "Compiled to IR: \n====== \n {}\n======",
-                    module.print_to_string().to_string()
-                );
-
-                let jit = module
-                    .create_jit_execution_engine(OptimizationLevel::None)
-                    .unwrap();
-
-                let main = unsafe {
-                    jit.get_function::<unsafe extern "C" fn() -> f64>("main")
-                        .unwrap()
-                };
-
-                unsafe {
-                    let result = main.call();
-                    println!("Result: {}", result);
                 }
 
                 Ok(())

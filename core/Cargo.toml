@@ -8,5 +8,4 @@ thiserror = { workspace = true }
 colored = { workspace = true }
 log = { workspace = true }
 indexmap = { workspace = true }
-inkwell = { workspace = true }
 rustc-hash = "2.0.0"

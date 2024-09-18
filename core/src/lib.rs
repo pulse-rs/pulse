@@ -7,7 +7,6 @@ pub mod ast;
 pub mod build;
 pub mod error;
 mod global_context;
-mod ir;
 pub mod lexer;
 mod parser;
 mod scopes;
