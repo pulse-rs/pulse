@@ -7,19 +7,22 @@ use crate::ast::span::TextSpan;
 use crate::ast::stmt::{LetStmt, ReturnStmt, Stmt, WhileStmt};
 use crate::ast::visitor::ASTWalker;
 use crate::ast::{Ast, ID};
-use crate::error::error::Error::{
-    CallToUndeclaredFunction, IllegalReturn, InvalidArguments, MainFunctionParameters, NotFound,
-    TypeMismatch,
-};
+use crate::error::error::Error::{CallToUndeclaredFunction, IllegalReturn, InvalidArguments, MainFunctionParameters, NotFound, ReservedName, TypeMismatch};
 use crate::lexer::token::{Operator, TokenKind};
 use crate::scopes::Scopes;
 use crate::types::{parse_type, Type};
 use crate::Result;
+use lazy_static::lazy_static;
 use std::process::id;
+use crate::ast::item::ItemKind;
 
 pub struct TypeAnalyzer {
     pub content: String,
     pub scopes: Scopes,
+}
+
+lazy_static! {
+    static ref STD_RESERVED_FUNCTIONS: Vec<&'static str> = vec!["print", "println"];
 }
 
 impl ASTWalker for TypeAnalyzer {
@@ -35,6 +38,20 @@ impl ASTWalker for TypeAnalyzer {
         );
         self.scopes.push_scope(Some(func_decl.id));
         let func = self.scopes.global.functions.get(&func_decl.id).unwrap();
+        if STD_RESERVED_FUNCTIONS.contains(&&*func.name) {
+        let item = ast.query_item(item_id);
+            let span = match item.kind {
+                ItemKind::Function(ref func) => func.identifier.span.clone(),
+                _ => unreachable!(),
+            };
+
+            return Err(ReservedName(
+                func.name.clone(),
+                span,
+                self.content.clone(),
+            ));
+        }
+
         for param in &func_decl.parameters {
             self.scopes.local.last_mut().unwrap().add_local(*param);
         }
@@ -231,6 +248,19 @@ impl ASTWalker for TypeAnalyzer {
                     &argument_expression.span(ast),
                     &self.content,
                 )?;
+            }
+
+            ast.update_type(expr.id, return_type);
+            Ok(())
+        } else if STD_RESERVED_FUNCTIONS.contains(&&call_expression.callee.span.literal[..]) {
+            let return_type = match &call_expression.callee.span.literal[..] {
+                "print" => Type::Void,
+                "println" => Type::Void,
+                _ => unreachable!(),
+            };
+
+            for argument in &call_expression.arguments {
+                self.visit_expression(ast, *argument)?;
             }
 
             ast.update_type(expr.id, return_type);

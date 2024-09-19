@@ -34,6 +34,8 @@ pub enum Error {
     CallToUndeclaredFunction(String, TextSpan, String),
     #[error("Invalid arguments provided to call expresion. Expected {0}, got {1}")]
     InvalidArguments(usize, usize, TextSpan, String),
+    #[error("Tried to create function with std reserved name: {0}")]
+    ReservedName(String, TextSpan, String),
 }
 
 impl From<String> for Error {
@@ -148,6 +150,14 @@ impl Error {
                 content: Some(content),
             },
             Self::InvalidArguments(_, _, span, content) => Diagnostic {
+                title: string,
+                text: None,
+                level: Level::Error,
+                location: Some(span),
+                hint: None,
+                content: Some(content),
+            },
+            Self::ReservedName(_, span, content) => Diagnostic {
                 title: string,
                 text: None,
                 level: Level::Error,
