@@ -1,6 +1,7 @@
 use pulse_core::{error::error::Error, Result};
 use std::fs;
 use std::path::PathBuf;
+use crate::commands::run::create_file;
 
 pub fn init_command(name: Option<String>) -> Result<()> {
     let name = name.unwrap_or_else(|| "pulse_project".to_string());
@@ -20,9 +21,7 @@ pub fn init_command(name: Option<String>) -> Result<()> {
     ];
     
     for (file, content) in files {
-        let file_path = path.join(file);
-        fs::create_dir_all(file_path.parent().unwrap()).map_err(Error::io)?;
-        fs::write(file_path, content).map_err(Error::io)?;
+        create_file(path.join(file), content)?;
     }
     
     log::info!("Created project at {:?}", path);

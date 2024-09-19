@@ -2,6 +2,7 @@
 
 mod fs;
 mod logger;
+mod macros;
 mod panic_handler;
 
 use crate::commands::init::init_command;
