@@ -8,8 +8,6 @@ use crate::parser::Parser;
 use crate::scopes::Scopes;
 use crate::semantic::types::TypeAnalyzer;
 use crate::Result;
-use inkwell::context::Context;
-use inkwell::OptimizationLevel;
 use log::debug;
 use std::path::PathBuf;
 

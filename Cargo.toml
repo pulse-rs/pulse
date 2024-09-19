@@ -6,10 +6,11 @@ members = ["cli", "core"]
 clap = { version = "4.5.17", features = ["derive"] }
 thiserror = { version = "1.0.63" }
 log = { version = "0.4.22" }
-vit_logger = { version = "0.1.5" }
+vit_logger = { version = "0.1.6" }
 colored = { version = "2.1.0" }
 backtrace = { version = "0.3.73" }
 indexmap = "2.5.0"
+lazy_static = "1.5.0"
 
 # Pulse Crates
 pulse_core = { path = "core" }

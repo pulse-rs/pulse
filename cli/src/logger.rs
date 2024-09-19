@@ -6,10 +6,10 @@ pub fn setup_logger(verbose: bool) {
     VitLogger::new().init(
         Config::builder()
             .text(true)
-            .target(true)
+            .target(verbose)
             .file(verbose)
-            .line(true)
-            .time(false)
+            .line(verbose)
+            .time(!verbose)
             .finish()
             .expect("Error building config"),
     );

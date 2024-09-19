@@ -5,6 +5,7 @@ use crate::error::error::Error;
 
 pub mod ast;
 pub mod build;
+mod codegen;
 pub mod error;
 mod global_context;
 pub mod lexer;

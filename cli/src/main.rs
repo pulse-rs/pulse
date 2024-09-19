@@ -3,6 +3,7 @@
 mod logger;
 mod panic_handler;
 
+use crate::commands::init::init_command;
 use crate::commands::run::run_command;
 use crate::logger::setup_logger;
 use clap::{
@@ -15,6 +16,7 @@ use std::io::{stderr, BufWriter, Write};
 use std::path::PathBuf;
 
 pub mod commands {
+    pub mod init;
     pub mod run;
 }
 
@@ -34,9 +36,16 @@ struct Program {
 
 #[derive(Debug, Subcommand)]
 enum Commands {
+    #[command(about = "Run a pulse file")]
     Run {
         #[arg(name = "FILE", value_hint = ValueHint::FilePath)]
         file: Option<PathBuf>,
+    },
+
+    #[command(about = "Initialize a new project")]
+    Init {
+        #[arg(name = "NAME")]
+        name: Option<String>,
     },
 }
 
@@ -55,6 +64,7 @@ fn main() {
                 Err(NotImplemented("REPL".to_string()))
             }
         }
+        Commands::Init { name } => init_command(name.clone()),
     };
 
     match result {

@@ -9,3 +9,4 @@ colored = { workspace = true }
 log = { workspace = true }
 indexmap = { workspace = true }
 rustc-hash = "2.0.0"
+lazy_static = { workspace = true }

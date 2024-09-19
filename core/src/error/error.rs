@@ -34,23 +34,11 @@ pub enum Error {
     CallToUndeclaredFunction(String, TextSpan, String),
     #[error("Invalid arguments provided to call expresion. Expected {0}, got {1}")]
     InvalidArguments(usize, usize, TextSpan, String),
-    #[error("IR error: {0}")]
-    IR(#[from] inkwell::builder::BuilderError),
-    #[error("Failed to create execution engine: {0}")]
-    ExecutionEngineError(String),
-    #[error("{0}")]
-    StrError(&'static str),
 }
 
 impl From<String> for Error {
     fn from(s: String) -> Self {
         Self::Generic(s, None)
-    }
-}
-
-impl From<&'static str> for Error {
-    fn from(s: &'static str) -> Self {
-        Self::StrError(s)
     }
 }
 
@@ -76,14 +64,6 @@ impl Error {
 
         // TODO: simplify this
         match self {
-            Self::StrError(msg) => Diagnostic {
-                title: string,
-                text: None,
-                level: Level::Error,
-                location: None,
-                hint: None,
-                content: None,
-            },
             Self::Generic(title, msg) => Diagnostic {
                 title,
                 text: msg,
@@ -174,22 +154,6 @@ impl Error {
                 location: Some(span),
                 hint: None,
                 content: Some(content),
-            },
-            Self::IR(_) => Diagnostic {
-                title: string,
-                text: None,
-                level: Level::Error,
-                location: None,
-                hint: None,
-                content: None,
-            },
-            Self::ExecutionEngineError(msg) => Diagnostic {
-                title: string,
-                text: None,
-                level: Level::Error,
-                location: None,
-                hint: Some(msg),
-                content: None,
             },
         }
     }
