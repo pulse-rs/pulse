@@ -64,107 +64,51 @@ impl Error {
     pub fn into_diagnostic(self) -> Diagnostic {
         let string = self.to_string();
 
-        // TODO: simplify this
-        match self {
-            Self::Generic(title, msg) => Diagnostic {
-                title,
-                text: msg,
-                level: Level::Error,
-                location: None,
-                hint: None,
-                content: None,
-            },
-            Self::Io(msg) => Diagnostic {
-                title: msg.to_string(),
-                text: None,
-                level: Level::Error,
-                location: None,
-                hint: None,
-                content: None,
-            },
-            Self::NotImplemented(_) => Diagnostic {
-                title: string,
-                text: None,
-                level: Level::Error,
-                location: None,
-                hint: Some("Check if there is an issue open for it on the GitHub.".to_string()),
-                content: None,
-            },
-            Self::InvalidExtension(_) => Diagnostic {
-                title: string,
-                text: Some("Expected file extension to be `.pulse`".to_string()),
-                level: Level::Error,
-                location: None,
-                hint: None,
-                content: None,
-            },
-            Self::FileDoesNotExist => Diagnostic {
-                title: string,
-                text: None,
-                level: Level::Error,
-                location: None,
-                hint: None,
-                content: None,
-            },
-            Self::ParseError(msg, span, content) => Diagnostic {
-                title: msg,
-                text: None,
-                level: Level::Error,
-                location: Some(span),
-                hint: None,
-                content: Some(content),
-            },
+        let (title, text, level, location, hint, content) = match self {
+            Self::Generic(title, msg) => (title, msg, Level::Error, None, None, None),
+            Self::Io(msg) => (msg.to_string(), None, Level::Error, None, None, None),
+            Self::NotImplemented(_) => (
+                self.to_string(),
+                None,
+                Level::Error,
+                None,
+                Some("Check if there is an issue open for it on the GitHub.".to_string()),
+                None,
+            ),
+            Self::InvalidExtension(_) => (
+                self.to_string(),
+                Some("Expected file extension to be `.pulse`".to_string()),
+                Level::Error,
+                None,
+                None,
+                None,
+            ),
+            Self::FileDoesNotExist => (self.to_string(), None, Level::Error, None, None, None),
+            Self::ParseError(msg, span, content) => {
+                (msg, None, Level::Error, Some(span), None, Some(content))
+            }
             Self::FunctionAlreadyExists(_, span, content)
             | Self::InvalidType(_, span, content)
             | Self::NotFound(_, span, content)
-            | Self::CallToUndeclaredFunction(_, span, content) => Diagnostic {
-                title: string,
-                text: None,
-                level: Level::Error,
-                location: Some(span),
-                hint: None,
-                content: Some(content),
-            },
-            Self::IllegalReturn(span, content) => Diagnostic {
-                title: string,
-                text: None,
-                level: Level::Error,
-                location: Some(span),
-                hint: None,
-                content: Some(content),
-            },
-            Self::MainFunctionParameters => Diagnostic {
-                title: string,
-                text: None,
-                level: Level::Error,
-                location: None,
-                hint: None,
-                content: None,
-            },
-            Self::TypeMismatch(_, _, span, content) => Diagnostic {
-                title: string,
-                text: None,
-                level: Level::Error,
-                location: Some(span),
-                hint: None,
-                content: Some(content),
-            },
-            Self::InvalidArguments(_, _, span, content) => Diagnostic {
-                title: string,
-                text: None,
-                level: Level::Error,
-                location: Some(span),
-                hint: None,
-                content: Some(content),
-            },
-            Self::ReservedName(_, span, content) => Diagnostic {
-                title: string,
-                text: None,
-                level: Level::Error,
-                location: Some(span),
-                hint: None,
-                content: Some(content),
-            },
+            | Self::CallToUndeclaredFunction(_, span, content)
+            | Self::IllegalReturn(span, content)
+            | Self::TypeMismatch(_, _, span, content)
+            | Self::InvalidArguments(_, _, span, content)
+            | Self::ReservedName(_, span, content) => {
+                (string, None, Level::Error, Some(span), None, Some(content))
+            }
+            Self::MainFunctionParameters => {
+                (self.to_string(), None, Level::Error, None, None, None)
+            }
+        };
+
+        Diagnostic {
+            title,
+            text,
+            level,
+            location,
+            hint,
+            content,
         }
     }
 }
