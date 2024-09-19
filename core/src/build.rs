@@ -1,5 +1,6 @@
 use crate::ast::visitor::ASTWalker;
 use crate::ast::Ast;
+use crate::codegen::CCodegen;
 use crate::error::error::Error::{MainFunctionParameters, ParseError};
 use crate::global_context::GlobalContext;
 use crate::lexer::token::{Token, TokenKind};
@@ -59,6 +60,10 @@ impl BuildProcess {
                 for (id, _) in self.ast.items.clone().iter() {
                     type_analyzer.visit_item(self.ast, *id)?;
                 }
+
+                let mut codegen = CCodegen::new(self.ast, self.file.clone());
+
+                codegen.generate_code();
 
                 Ok(())
             }
