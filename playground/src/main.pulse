@@ -9,6 +9,9 @@ fn main() -> int {
     let a: int = add(x, y);
 
     println(123, 123, false);
+    println(123, 123, true);
+    print(123, 123, false);
+    print(123, 123, true);
 
     if a == 579 {
         return 0

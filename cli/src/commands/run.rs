@@ -6,6 +6,7 @@ use pulse_core::build::BuildProcess;
 use pulse_core::error::error::Error;
 use pulse_core::error::error::Error::{FileDoesNotExist, InvalidExtension};
 use pulse_core::Result;
+use std::fmt::format;
 use std::path::PathBuf;
 use std::process::Output;
 use std::{env, fs};
@@ -105,7 +106,21 @@ pub fn run_command(path: PathBuf) -> Result<()> {
     if let Some(cpp_compiler) = cpp_compiler {
         log::debug!("Using C++ compiler: {:?}", cpp_compiler);
 
-        compile_cpp_file(cpp_compiler, new_path, looked_for, build_dir)?;
+        compile_cpp_file(
+            cpp_compiler,
+            new_path.clone(),
+            looked_for,
+            build_dir.clone(),
+        )?;
+
+        let output = std::process::Command::new(
+            build_dir.join(full_path.file_stem().unwrap().to_str().unwrap()),
+        )
+        .current_dir(build_dir)
+        .output()
+        .map_err(Error::io)?;
+
+        display_output(output);
     } else {
         log::debug!("No C++ compiler found.");
         return Err(Error::CompilerNotFound(looked_for.to_string()));
@@ -120,24 +135,28 @@ pub fn compile_cpp_file(
     compiler: Compiler,
     out_dir: PathBuf,
 ) -> Result<()> {
+    let file_stem = file.clone();
+    let file_stem = file_stem.file_stem().unwrap().to_str().unwrap();
+
+    log::debug!("Creating exe with name: {}", file_stem);
     let output = match compiler {
         Compiler::ClangPlus => std::process::Command::new(compiler_path)
             .arg(file)
             .arg("-o")
-            .arg("output")
+            .arg(file_stem)
             .current_dir(out_dir)
             .output()
             .map_err(Error::io)?,
         Compiler::Gcc => std::process::Command::new(compiler_path)
             .arg(file)
             .arg("-o")
-            .arg("output")
+            .arg(file_stem)
             .current_dir(out_dir)
             .output()
             .map_err(Error::io)?,
         Compiler::Msvc => std::process::Command::new(compiler_path)
             .arg(file)
-            .arg("/Fe:output")
+            .arg(format!("/Fe{}", file_stem))
             .current_dir(out_dir)
             .output()
             .map_err(Error::io)?,
