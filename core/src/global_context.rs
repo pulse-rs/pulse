@@ -51,7 +51,7 @@ impl GlobalContext {
 
         id
     }
-    
+
     pub fn lookup_var(&self, id: ID) -> Option<&Variable> {
         self.variables.get(&id)
     }
@@ -59,7 +59,7 @@ impl GlobalContext {
     pub fn get_global_variable(&self, name: &str) -> Option<&Variable> {
         self.global_variables.iter().find(|var| var.name == name)
     }
-    
+
     pub fn lookup_var_id(&self, identifier: &str) -> Option<ID> {
         self.variables
             .iter()
@@ -75,6 +75,7 @@ impl GlobalContext {
     }
 
     pub fn push_function(&mut self, function: Function) -> ID {
+        println!("current len {}", self.functions.len());
         let id = new_id(self.functions.len() as u32);
         self.functions.insert(id, function);
         id

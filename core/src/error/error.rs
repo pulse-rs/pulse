@@ -36,6 +36,8 @@ pub enum Error {
     InvalidArguments(usize, usize, TextSpan, String),
     #[error("Tried to create function with std reserved name: {0}")]
     ReservedName(String, TextSpan, String),
+    #[error("Format error: {0}")]
+    FormatError(#[from] std::fmt::Error),
 }
 
 impl From<String> for Error {
@@ -66,7 +68,8 @@ impl Error {
 
         let (title, text, level, location, hint, content) = match self {
             Self::Generic(title, msg) => (title, msg, Level::Error, None, None, None),
-            Self::Io(msg) => (msg.to_string(), None, Level::Error, None, None, None),
+            Self::Io(msg)  => (msg.to_string(), None, Level::Error, None, None, None),
+            Self::FormatError(msg) => (msg.to_string(), None, Level::Error, None, None, None),
             Self::NotImplemented(_) => (
                 self.to_string(),
                 None,

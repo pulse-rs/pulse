@@ -30,15 +30,26 @@ pub fn create_file(path: PathBuf, content: &str) -> Result<()> {
     log::debug!("Creating file: {:?}", path);
     let full_path = normalize_path(path, env::current_dir().map_err(Error::io)?)?;
 
-    fs::create_dir_all(full_path.parent().unwrap()).map_err(Error::io)?;
     fs::write(full_path, content).map_err(Error::io)?;
 
     Ok(())
 }
 
+pub fn create_without_canonicalize(path: PathBuf, content: &str) -> Result<()> {
+    log::debug!("Creating file: {:?}", path);
+
+    fs::write(path, content).map_err(Error::io)?;
+
+    Ok(())
+}
+
+pub fn build_dir() -> Result<PathBuf> {
+    Ok(env::current_dir().map_err(Error::io)?.join("build"))
+}
+
 pub fn setup_build_dir() -> Result<()> {
     log::debug!("Setting up build directory");
-    let build_dir = env::current_dir().map_err(Error::io)?.join("build");
+    let build_dir = build_dir()?;
 
     if !build_dir.exists() {
         fs::create_dir(&build_dir).map_err(Error::io)?;
@@ -50,9 +61,9 @@ pub fn setup_build_dir() -> Result<()> {
         fs::create_dir(&std_dir).map_err(Error::io)?;
     }
 
-    // TODO: maybe simplify this
-    let files = include_files!("../../lib/main.cpp");
-    let names = vec!["main.cpp".to_string()];
+    // TODO: improve this
+    let files = include_files!("../../lib/lib.cpp");
+    let names = vec!["lib.cpp".to_string()];
 
     for content in files.iter() {
         for name in names.iter() {
@@ -70,9 +81,21 @@ pub fn run_command(path: PathBuf) -> Result<()> {
     log::debug!("Running command with source: {}", source);
     setup_build_dir()?;
 
-    let mut build = BuildProcess::new(source, full_path);
+    let mut build = BuildProcess::new(source, full_path.clone());
 
-    build.compile()?;
+    let code = build.compile()?;
+
+    log::debug!("Generated code: {}", code);
+
+    let build_dir = build_dir()?;
+    let new_path = build_dir
+        .join("source")
+        .join(full_path.file_name().unwrap())
+        .with_extension("cpp");
+
+    println!("Writing generated code to: {:?}", new_path);
+
+    create_without_canonicalize(new_path, &code)?;
 
     Ok(())
 }

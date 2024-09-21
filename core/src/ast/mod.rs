@@ -228,7 +228,7 @@ impl Ast {
             arguments,
             left_paren,
             right_paren,
-            function_idx: u32::MAX,
+            function_idx: new_id(self.exprs.len() as u32),
         }))
     }
 
@@ -239,7 +239,7 @@ impl Ast {
             right,
         }))
     }
-    
+
     pub fn query_expr_mut(&mut self, id: ID) -> &mut Expr {
         self.exprs.get_mut(&id).unwrap()
     }
@@ -279,13 +279,15 @@ impl Ast {
 
     pub fn set_var_stmt(&mut self, stmt_id: &ID, var_id: ID) {
         let stmt = self.stmts.get_mut(stmt_id).unwrap();
+
         if let StmtKind::Let(let_stmt) = &mut stmt.kind {
+            log::debug!("Updating let statement with variable id: {}", var_id);
             let_stmt.variable_id = var_id;
         } else {
             panic!("Expected let statement");
         }
     }
-    
+
     pub fn update_type(&mut self, expr_id: ID, type_: Type) {
         let expr = self.exprs.get_mut(&expr_id).unwrap();
         expr.ty = type_;

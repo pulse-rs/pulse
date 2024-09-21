@@ -1,3 +1,17 @@
-fn main() {
-    println("Hello, World!");
+fn add(argone: int, argtwo: int) -> int {
+    argone + argtwo
 }
+
+fn main() -> int {
+    let x: int = 123;
+    let y: int = 456;
+
+    let a: int = add(x, y);
+
+    if a == 579 {
+        0
+    } else {
+        1
+    }
+}
+

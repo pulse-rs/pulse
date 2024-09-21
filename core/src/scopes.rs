@@ -22,14 +22,14 @@ impl LocalScope {
     }
 }
 
-#[derive(Debug, Clone)]
-pub struct Scopes {
+#[derive(Debug)]
+pub struct Scopes<'a> {
     pub local: Vec<LocalScope>,
-    pub global: GlobalContext,
+    pub global: &'a mut GlobalContext,
 }
 
-impl Scopes {
-    pub fn new(ctx: GlobalContext) -> Self {
+impl<'a> Scopes<'a> {
+    pub fn new(ctx: &'a mut GlobalContext) -> Self {
         Scopes {
             local: vec![],
             global: ctx,

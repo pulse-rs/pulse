@@ -3,29 +3,32 @@ use crate::ast::expr::{
     ExprKind, IfExpr, NumberExpr, StringExpr, UnOpKind, UnaryExpr, VarExpr,
 };
 use crate::ast::function::{get_type_of_last_expr, FunctionDeclaration, TypeAnnotation};
+use crate::ast::item::ItemKind;
 use crate::ast::span::TextSpan;
 use crate::ast::stmt::{LetStmt, ReturnStmt, Stmt, WhileStmt};
 use crate::ast::visitor::ASTWalker;
 use crate::ast::{Ast, ID};
-use crate::error::error::Error::{CallToUndeclaredFunction, IllegalReturn, InvalidArguments, MainFunctionParameters, NotFound, ReservedName, TypeMismatch};
+use crate::error::error::Error::{
+    CallToUndeclaredFunction, IllegalReturn, InvalidArguments, MainFunctionParameters, NotFound,
+    ReservedName, TypeMismatch,
+};
 use crate::lexer::token::{Operator, TokenKind};
 use crate::scopes::Scopes;
 use crate::types::{parse_type, Type};
 use crate::Result;
 use lazy_static::lazy_static;
 use std::process::id;
-use crate::ast::item::ItemKind;
 
-pub struct TypeAnalyzer {
+pub struct TypeAnalyzer<'a> {
     pub content: String,
-    pub scopes: Scopes,
+    pub scopes: Scopes<'a>,
 }
 
 lazy_static! {
     static ref STD_RESERVED_FUNCTIONS: Vec<&'static str> = vec!["print", "println"];
 }
 
-impl ASTWalker for TypeAnalyzer {
+impl<'a> ASTWalker for TypeAnalyzer<'a> {
     fn visit_func_decl(
         &mut self,
         ast: &mut Ast,
@@ -39,17 +42,13 @@ impl ASTWalker for TypeAnalyzer {
         self.scopes.push_scope(Some(func_decl.id));
         let func = self.scopes.global.functions.get(&func_decl.id).unwrap();
         if STD_RESERVED_FUNCTIONS.contains(&&*func.name) {
-        let item = ast.query_item(item_id);
+            let item = ast.query_item(item_id);
             let span = match item.kind {
                 ItemKind::Function(ref func) => func.identifier.span.clone(),
                 _ => unreachable!(),
             };
 
-            return Err(ReservedName(
-                func.name.clone(),
-                span,
-                self.content.clone(),
-            ));
+            return Err(ReservedName(func.name.clone(), span, self.content.clone()));
         }
 
         for param in &func_decl.parameters {
@@ -197,7 +196,7 @@ impl ASTWalker for TypeAnalyzer {
 
         let ident = let_statement.identifier.span.literal.clone();
 
-        let var = self.scopes.new_var(ident, typ);
+        let var = self.scopes.new_var(ident.clone(), typ);
         ast.set_var_stmt(&stmt.id, var);
 
         Ok(())
