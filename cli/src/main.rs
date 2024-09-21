@@ -1,10 +1,11 @@
+#![feature(let_chains)]
 #![allow(warnings, unused)]
 
+pub mod cpp_compiler;
 mod fs;
 mod logger;
 mod macros;
 mod panic_handler;
-
 use crate::commands::init::init_command;
 use crate::commands::run::run_command;
 use crate::logger::setup_logger;

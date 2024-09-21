@@ -9,6 +9,7 @@ log = { workspace = true }
 vit_logger = { workspace = true }
 colored = { workspace = true }
 backtrace = { workspace = true }
+which = { workspace = true }
 
 # Pulse Crates
 pulse_core = { workspace = true }

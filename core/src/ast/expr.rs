@@ -281,7 +281,11 @@ impl Expr {
             }
             ExprKind::Variable(var) => var.identifier.span.clone(),
             ExprKind::Call(call) => combine_call_expr_span(call),
-            _ => unreachable!(),
+            ExprKind::If(if_expr) => if_expr.if_keyword.span.clone(),
+            _ => {
+                log::debug!("No span for {:#?}", self);
+                unreachable!()
+            }
         }
     }
 }

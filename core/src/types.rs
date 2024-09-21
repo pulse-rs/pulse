@@ -33,7 +33,7 @@ impl Type {
     pub fn is_assignable_to(&self, other: &Type) -> bool {
         matches!(
             (self, other),
-            (Type::Int, Type::Int)
+            (Type::Int, Type::Int) | (Type::Void, Type::Void)
                 | (Type::Bool, Type::Bool)
                 | (Type::Error, _)
                 | (_, Type::Error)

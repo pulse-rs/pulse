@@ -4,7 +4,7 @@ use crate::ast::expr::{
 };
 use crate::ast::function::FunctionDeclaration;
 use crate::ast::span::TextSpan;
-use crate::ast::stmt::{LetStmt, Stmt};
+use crate::ast::stmt::{LetStmt, ReturnStmt, Stmt};
 use crate::ast::visitor::ASTWalker;
 use crate::ast::{Ast, ID};
 use crate::codegen::CppCodegen;
@@ -74,7 +74,24 @@ impl ASTWalker for CppCodegen<'_> {
             self.visit_statement(ast, stmt)?;
         }
 
-        write!(self.output, "\n}}\n")?;
+        write!(self.output, "\n}};\n")?;
+
+        Ok(())
+    }
+
+    // TODO: Allow last exprs in the body to be returned
+    fn visit_return_statement(
+        &mut self,
+        ast: &mut Ast,
+        return_statement: &ReturnStmt,
+    ) -> Result<()> {
+        if let Some(return_value) = &return_statement.return_value {
+            write!(self.output, "return ")?;
+            self.visit_expression(ast, *return_value)?;
+            write!(self.output, ";\n")?;
+        } else {
+            write!(self.output, "return;\n")?;
+        }
 
         Ok(())
     }
@@ -84,14 +101,15 @@ impl ASTWalker for CppCodegen<'_> {
         self.visit_expression(ast, if_expr.condition)?;
 
         write!(self.output, ") {{\n")?;
-
-        match (if_expr.else_branch.as_ref(), &expr.ty) {
-            (None, _) | (Some(_), Type::Void) => {
+        match if_expr.else_branch.as_ref() {
+            None => {
                 for stmt in if_expr.then_branch.stmts.clone() {
                     self.visit_statement(ast, stmt)?;
                 }
+
+                write!(self.output, "}}\n")?;
             }
-            (Some(else_branch), _) => {
+            Some(else_branch) => {
                 for stmt in if_expr.then_branch.stmts.clone() {
                     self.visit_statement(ast, stmt)?;
                 }
@@ -101,6 +119,8 @@ impl ASTWalker for CppCodegen<'_> {
                 for stmt in else_branch.body.stmts.clone() {
                     self.visit_statement(ast, stmt)?;
                 }
+
+                write!(self.output, "}}\n")?;
             }
             _ => unreachable!("Invalid if expression"),
         }

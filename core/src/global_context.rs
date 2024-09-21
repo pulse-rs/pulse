@@ -75,7 +75,6 @@ impl GlobalContext {
     }
 
     pub fn push_function(&mut self, function: Function) -> ID {
-        println!("current len {}", self.functions.len());
         let id = new_id(self.functions.len() as u32);
         self.functions.insert(id, function);
         id

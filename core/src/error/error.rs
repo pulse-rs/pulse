@@ -38,6 +38,10 @@ pub enum Error {
     ReservedName(String, TextSpan, String),
     #[error("Format error: {0}")]
     FormatError(#[from] std::fmt::Error),
+    #[error("No C++ compiler found. Looked for: {0}")]
+    CompilerNotFound(String),
+    #[error("Couldn't find program: {0}")]
+    WhichError(#[from] which::Error),
 }
 
 impl From<String> for Error {
@@ -68,7 +72,7 @@ impl Error {
 
         let (title, text, level, location, hint, content) = match self {
             Self::Generic(title, msg) => (title, msg, Level::Error, None, None, None),
-            Self::Io(msg)  => (msg.to_string(), None, Level::Error, None, None, None),
+            Self::Io(msg)   => (msg.to_string(), None, Level::Error, None, None, None),
             Self::FormatError(msg) => (msg.to_string(), None, Level::Error, None, None, None),
             Self::NotImplemented(_) => (
                 self.to_string(),
@@ -87,6 +91,22 @@ impl Error {
                 None,
             ),
             Self::FileDoesNotExist => (self.to_string(), None, Level::Error, None, None, None),
+            Self::CompilerNotFound(msg) => (
+                string,
+                None,
+                Level::Error,
+                None,
+                Some("Make sure you have a C++ compiler installed.".to_string()),
+                Some(msg),
+            ),
+            Self::WhichError(msg) => (
+                string,
+                None,
+                Level::Error,
+                None,
+                Some("Make sure you have the program installed. If it is installed, make sure it is in your PATH.".to_string()),
+                Some(msg.to_string()),
+            ),
             Self::ParseError(msg, span, content) => {
                 (msg, None, Level::Error, Some(span), None, Some(content))
             }

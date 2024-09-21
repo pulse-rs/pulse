@@ -1,10 +1,13 @@
+use crate::cpp_compiler::{find_cpp_compiler_for_os, Compiler};
 use crate::fs::normalize_path;
 use crate::include_files;
+use log::{debug, log};
 use pulse_core::build::BuildProcess;
 use pulse_core::error::error::Error;
 use pulse_core::error::error::Error::{FileDoesNotExist, InvalidExtension};
 use pulse_core::Result;
 use std::path::PathBuf;
+use std::process::Output;
 use std::{env, fs};
 // TODO: If no file was provided. Look recursively for a pulse.toml file and resolve the main file from there
 
@@ -95,7 +98,60 @@ pub fn run_command(path: PathBuf) -> Result<()> {
 
     println!("Writing generated code to: {:?}", new_path);
 
-    create_without_canonicalize(new_path, &code)?;
+    create_without_canonicalize(new_path.clone(), &code)?;
+
+    let (cpp_compiler, looked_for) = find_cpp_compiler_for_os()?;
+
+    if let Some(cpp_compiler) = cpp_compiler {
+        log::debug!("Using C++ compiler: {:?}", cpp_compiler);
+
+        compile_cpp_file(cpp_compiler, new_path, looked_for, build_dir)?;
+    } else {
+        log::debug!("No C++ compiler found.");
+        return Err(Error::CompilerNotFound(looked_for.to_string()));
+    }
 
     Ok(())
+}
+
+pub fn compile_cpp_file(compiler_path: PathBuf, file: PathBuf, compiler: Compiler, out_dir: PathBuf) -> Result<()> {
+    let output = match compiler {
+        Compiler::ClangPlus => std::process::Command::new(compiler_path)
+            .arg(file)
+            .arg("-o")
+            .arg("output")
+            .current_dir(out_dir)
+            .output()
+            .map_err(Error::io)?,
+        Compiler::Gcc => std::process::Command::new(compiler_path)
+            .arg(file)
+            .arg("-o")
+            .arg("output")
+            .current_dir(out_dir)
+            .output()
+            .map_err(Error::io)?,
+        Compiler::Msvc => std::process::Command::new(compiler_path)
+            .arg(file)
+            .arg("/Fe:output")
+            .current_dir(out_dir)
+            .output()
+            .map_err(Error::io)?,
+    };
+    
+    display_output(output);
+
+    Ok(())
+}
+
+pub fn display_output(output: Output) {
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    let stderr = String::from_utf8_lossy(&output.stderr);
+
+    for line in stdout.lines() {
+        println!("{}", line);
+    }
+
+    for line in stderr.lines() {
+        eprintln!("{}", line);
+    }
 }

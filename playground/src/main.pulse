@@ -1,5 +1,5 @@
 fn add(argone: int, argtwo: int) -> int {
-    argone + argtwo
+    return argone + argtwo
 }
 
 fn main() -> int {
@@ -9,9 +9,9 @@ fn main() -> int {
     let a: int = add(x, y);
 
     if a == 579 {
-        0
+        return 0
     } else {
-        1
+        return 1
     }
 }
 

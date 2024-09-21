@@ -158,6 +158,8 @@ impl<'a> ASTWalker for TypeAnalyzer<'a> {
 
             let then_type = if_expr.then_branch.ty(ast).unwrap_or(Type::Void);
             let else_type = else_branch.body.ty(ast).unwrap_or(Type::Void);
+            
+            log::debug!("TypeAnalyzer::visit_if_expression then_type: {:?}, else_type: {:?}", then_type, else_type);
             type_ = expect_type(
                 &then_type,
                 &else_type,
