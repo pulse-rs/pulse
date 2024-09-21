@@ -31,6 +31,10 @@ void print(T first, Args... args) {
     print(args...);
 }
 
+void eprint() {
+    std::cerr;
+}
+
 template <typename T, typename... Args>
 void eprint(T first, Args... args) {
     std::cerr << first << " " << std::boolalpha;

@@ -14,7 +14,7 @@ pub fn normalize_path(mut path: PathBuf, root: PathBuf) -> Result<PathBuf> {
         Err(e) => {
             if e.kind() == ErrorKind::NotFound {
                 let parent = path.parent().unwrap();
-                println!("Creating parent: {:?}", parent);
+                log::debug!("Creating parent: {:?}", parent);
                 fs::create_dir_all(parent).map_err(Error::io)?;
             }
             return Err(Error::Io(e));

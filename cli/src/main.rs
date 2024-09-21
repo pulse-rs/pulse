@@ -6,6 +6,8 @@ mod fs;
 mod logger;
 mod macros;
 mod panic_handler;
+mod time;
+
 use crate::commands::init::init_command;
 use crate::commands::run::run_command;
 use crate::logger::setup_logger;
