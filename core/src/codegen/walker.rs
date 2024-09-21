@@ -8,6 +8,7 @@ use crate::ast::stmt::{LetStmt, ReturnStmt, Stmt};
 use crate::ast::visitor::ASTWalker;
 use crate::ast::{Ast, ID};
 use crate::codegen::CppCodegen;
+use crate::semantic::types::STD_RESERVED_FUNCTIONS;
 use crate::types::Type;
 use crate::Result;
 use std::fmt::Write;
@@ -153,6 +154,22 @@ impl ASTWalker for CppCodegen<'_> {
         call_expression: &CallExpr,
         _expr: &Expr,
     ) -> Result<()> {
+        if STD_RESERVED_FUNCTIONS.contains(&call_expression.callee.span.literal.as_str()) {
+            write!(self.output, "{} (", call_expression.callee.span.literal)?;
+
+            for (i, arg) in call_expression.arguments.iter().enumerate() {
+                if i != 0 {
+                    write!(self.output, ", ")?;
+                }
+
+                self.visit_expression(ast, *arg)?;
+            }
+
+            write!(self.output, ");\n")?;
+
+            return Ok(());
+        }
+
         let func = self
             .ctx
             .lookup_function(&call_expression.callee.span.literal);

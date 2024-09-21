@@ -26,7 +26,18 @@ impl<'a> CppCodegen<'a> {
         }
     }
 
+    pub fn write_prelude(&mut self) -> Result<()> {
+        writeln!(self.output, "#include <iostream>")?;
+        writeln!(self.output, "#include <string>")?;
+        writeln!(self.output, "#include \"../std/lib.cpp\"")?;
+
+        writeln!(self.output, "using namespace std;")?;
+
+        Ok(())
+    }
+
     pub fn generate_code(&mut self) -> Result<String> {
+        self.write_prelude()?;
         let ast_ptr: *mut Ast = self.ast as *mut Ast;
         for (id, _) in self.ast.items.clone().iter() {
             unsafe {

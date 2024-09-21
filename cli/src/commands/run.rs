@@ -65,15 +65,15 @@ pub fn setup_build_dir() -> Result<()> {
     }
 
     // TODO: improve this
-    let files = include_files!("../../lib/lib.cpp");
-    let names = vec!["lib.cpp".to_string()];
+    let files = include_files!("../../lib/lib.cpp", "../../lib/io.cpp");
+    let names = vec!["lib.cpp".to_string(), "io.cpp".to_string()];
 
-    for content in files.iter() {
-        for name in names.iter() {
-            let file = std_dir.join(name);
+    for (index, content) in files.iter().enumerate() {
+        let name = names.get(index).unwrap();
 
-            fs::write(file, content).map_err(Error::io)?;
-        }
+        let file = std_dir.join(name);
+
+        fs::write(file, content).map_err(Error::io)?;
     }
 
     Ok(())
@@ -96,7 +96,7 @@ pub fn run_command(path: PathBuf) -> Result<()> {
         .join(full_path.file_name().unwrap())
         .with_extension("cpp");
 
-    println!("Writing generated code to: {:?}", new_path);
+    log::debug!("Writing generated code to: {:?}", new_path);
 
     create_without_canonicalize(new_path.clone(), &code)?;
 
@@ -114,7 +114,12 @@ pub fn run_command(path: PathBuf) -> Result<()> {
     Ok(())
 }
 
-pub fn compile_cpp_file(compiler_path: PathBuf, file: PathBuf, compiler: Compiler, out_dir: PathBuf) -> Result<()> {
+pub fn compile_cpp_file(
+    compiler_path: PathBuf,
+    file: PathBuf,
+    compiler: Compiler,
+    out_dir: PathBuf,
+) -> Result<()> {
     let output = match compiler {
         Compiler::ClangPlus => std::process::Command::new(compiler_path)
             .arg(file)
@@ -137,7 +142,7 @@ pub fn compile_cpp_file(compiler_path: PathBuf, file: PathBuf, compiler: Compile
             .output()
             .map_err(Error::io)?,
     };
-    
+
     display_output(output);
 
     Ok(())
