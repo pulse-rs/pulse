@@ -39,8 +39,13 @@ lazy_static! {
 
         let mut math = IndexMap::new();
         math.insert("sqrt", Type::Int);
-
         map.insert("math", math);
+
+        let mut env = IndexMap::new();
+        env.insert("get_cwd", Type::String);
+        env.insert("get_home", Type::String);
+        map.insert("env", env);
+
         map
     };
 }

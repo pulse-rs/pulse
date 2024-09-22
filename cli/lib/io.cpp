@@ -1,22 +1,6 @@
 #include <iostream>
 using namespace std;
 
-// Global function declarations
-void println();
-template <typename T, typename... Args>
-void println(T first, Args... args);
-
-void eprintln();
-template <typename T, typename... Args>
-void eprintln(T first, Args... args);
-
-void print();
-template <typename T, typename... Args>
-void print(T first, Args... args);
-
-void eprint();
-template <typename T, typename... Args>
-void eprint(T first, Args... args);
 
 namespace io {
     void println() {

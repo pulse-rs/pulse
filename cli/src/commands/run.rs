@@ -58,9 +58,11 @@ pub fn setup_build_dir() -> Result<()> {
     let files = include_files!(
         "../../lib/lib.cpp",
         "../../lib/io.cpp",
-        "../../lib/math.cpp"
+        "../../lib/math.cpp",
+        "../../lib/env.cpp",
+        "../../lib/error.cpp"
     );
-    let names = vec!["lib.cpp", "io.cpp", "math.cpp"];
+    let names = vec!["lib.cpp", "io.cpp", "math.cpp", "env.cpp", "error.cpp"];
 
     for (name, content) in names.into_iter().zip(files) {
         let file_path = build_dir.join("std").join(name);
@@ -116,7 +118,6 @@ pub fn run_command(path: PathBuf) -> Result<()> {
         println!("        {} {}", "Running".bright_cyan(), exe_path.display());
 
         let output = std::process::Command::new(exe_path)
-            .current_dir(build_dir()?)
             .output()
             .map_err(Error::io)?;
         let to_display = String::from_utf8_lossy(&output.stdout);
