@@ -75,7 +75,7 @@ impl ASTWalker for CppCodegen<'_> {
             self.visit_statement(ast, stmt)?;
         }
 
-        write!(self.output, "\n}};\n")?;
+        write!(self.output, "\n}}\n")?;
 
         Ok(())
     }
@@ -89,9 +89,8 @@ impl ASTWalker for CppCodegen<'_> {
         if let Some(return_value) = &return_statement.return_value {
             write!(self.output, "return ")?;
             self.visit_expression(ast, *return_value)?;
-            write!(self.output, ";\n")?;
         } else {
-            write!(self.output, "return;\n")?;
+            write!(self.output, "return")?;
         }
 
         Ok(())
@@ -140,10 +139,18 @@ impl ASTWalker for CppCodegen<'_> {
 
             write!(self.output, "{} {} = ", type_name, var.name)?;
 
+            println!("let_statement.initializer: {:?}", let_statement.initializer);
             self.visit_expression(ast, let_statement.initializer)?;
 
-            write!(self.output, ";\n")?;
+            write!(self.output, "")?;
         }
+
+        Ok(())
+    }
+
+    fn visit_statement(&mut self, ast: &mut Ast, statement: ID) -> Result<()> {
+        self.do_visit_statement(ast, statement)?;
+        write!(self.output, ";\n")?;
 
         Ok(())
     }
@@ -160,11 +167,28 @@ impl ASTWalker for CppCodegen<'_> {
             let expr = match &scope.kind {
                 ExprKind::ScopedIdentifier { path } => {
                     for token in path {
+                        if token.span.literal == "std" {
+                            continue;
+                        }
                         write!(self.output, "{}::", token.span.literal.clone())?;
                     }
                 }
                 _ => unreachable!("Invalid scope"),
             };
+
+            write!(self.output, "{}(", call_expression.callee.span.literal)?;
+
+            for (i, arg) in call_expression.arguments.iter().enumerate() {
+                if i != 0 {
+                    write!(self.output, ", ")?;
+                }
+
+                self.visit_expression(ast, *arg)?;
+            }
+
+            write!(self.output, ")")?;
+
+            return Ok(());
         }
 
         if STD_RESERVED_WORDS.contains(&call_expression.callee.span.literal.as_str()) {
@@ -178,7 +202,7 @@ impl ASTWalker for CppCodegen<'_> {
                 self.visit_expression(ast, *arg)?;
             }
 
-            write!(self.output, ");\n")?;
+            write!(self.output, ")")?;
 
             return Ok(());
         }

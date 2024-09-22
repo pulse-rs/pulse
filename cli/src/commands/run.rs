@@ -55,8 +55,12 @@ pub fn setup_build_dir() -> Result<()> {
     fs::create_dir_all(build_dir.join("std")).map_err(Error::io)?;
 
     // Include and write files
-    let files = include_files!("../../lib/lib.cpp", "../../lib/io.cpp");
-    let names = vec!["lib.cpp", "io.cpp"];
+    let files = include_files!(
+        "../../lib/lib.cpp",
+        "../../lib/io.cpp",
+        "../../lib/math.cpp"
+    );
+    let names = vec!["lib.cpp", "io.cpp", "math.cpp"];
 
     for (name, content) in names.into_iter().zip(files) {
         let file_path = build_dir.join("std").join(name);
@@ -164,7 +168,13 @@ pub fn compile_cpp_file(
 }
 
 pub fn display_output(output: std::process::Output) {
-    if !output.status.success() {
-        eprintln!("{}", String::from_utf8_lossy(&output.stderr));
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    for line in stdout.lines() {
+        println!("{}", line);
+    }
+
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    for line in stderr.lines() {
+        eprintln!("{}", line);
     }
 }

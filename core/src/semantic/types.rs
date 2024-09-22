@@ -28,6 +28,21 @@ pub struct TypeAnalyzer<'a> {
 lazy_static! {
     pub static ref STD_RESERVED_WORDS: Vec<&'static str> =
         vec!["print", "println", "eprintln", "eprint"];
+    pub static ref STD_MODULES: IndexMap<&'static str, IndexMap<&'static str, Type>> = {
+        let mut map = IndexMap::new();
+        let mut io = IndexMap::new();
+        io.insert("print", Type::Void);
+        io.insert("println", Type::Void);
+        io.insert("eprint", Type::Void);
+        io.insert("eprintln", Type::Void);
+        map.insert("io", io);
+
+        let mut math = IndexMap::new();
+        math.insert("sqrt", Type::Int);
+
+        map.insert("math", math);
+        map
+    };
 }
 
 impl<'a> ASTWalker for TypeAnalyzer<'a> {
@@ -216,12 +231,6 @@ impl<'a> ASTWalker for TypeAnalyzer<'a> {
         call_expression: &CallExpr,
         expr: &Expr,
     ) -> Result<()> {
-        if let Some(scope) = call_expression.scope {
-            let scope = ast.query_expr(scope);
-
-            todo!()
-        }
-
         let func = self
             .scopes
             .global
@@ -262,6 +271,38 @@ impl<'a> ASTWalker for TypeAnalyzer<'a> {
             }
 
             ast.update_type(expr.id, return_type);
+            Ok(())
+        } else if let Some(scope) = call_expression.scope {
+            let scope = ast.query_expr(scope);
+
+            let expr = match &scope.kind {
+                ExprKind::ScopedIdentifier { path } => {
+                    if path.first().unwrap().span.literal == "std" {
+                        println!("{}", &path[1].span.literal[..]);
+                        let module = STD_MODULES
+                            .get(&path[1].span.literal[..])
+                            .expect("Module not found");
+                        let function = module.get(&call_expression.callee.span.literal[..]);
+
+                        if let Some(function) = function {
+                            let return_type = function.clone();
+                            for argument in &call_expression.arguments {
+                                self.visit_expression(ast, *argument)?;
+                            }
+
+                            ast.update_type(expr.id, return_type);
+                        } else {
+                            return Err(CallToUndeclaredFunction(
+                                call_expression.callee.span.literal.clone(),
+                                call_expression.callee.span.clone(),
+                                self.content.clone(),
+                            ));
+                        }
+                    }
+                }
+                _ => unreachable!("Invalid scope"),
+            };
+
             Ok(())
         } else if STD_RESERVED_WORDS.contains(&&call_expression.callee.span.literal[..]) {
             let return_type = match &call_expression.callee.span.literal[..] {

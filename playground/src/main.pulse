@@ -8,7 +8,9 @@ fn main() -> int {
 
     let a: int = add(x, y);
 
-    eprintln(a);
+    let val: int = std::math::sqrt(4) + 5;
+
+    std::io::println(val);
 
     if a == 579 {
         return 0
