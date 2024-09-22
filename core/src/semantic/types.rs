@@ -16,6 +16,7 @@ use crate::lexer::token::{Operator, TokenKind};
 use crate::scopes::Scopes;
 use crate::types::{parse_type, Type};
 use crate::Result;
+use indexmap::IndexMap;
 use lazy_static::lazy_static;
 use std::process::id;
 
@@ -25,7 +26,8 @@ pub struct TypeAnalyzer<'a> {
 }
 
 lazy_static! {
-    pub static ref STD_RESERVED_FUNCTIONS: Vec<&'static str> = vec!["print", "println"];
+    pub static ref STD_RESERVED_WORDS: Vec<&'static str> =
+        vec!["print", "println", "eprintln", "eprint"];
 }
 
 impl<'a> ASTWalker for TypeAnalyzer<'a> {
@@ -41,7 +43,7 @@ impl<'a> ASTWalker for TypeAnalyzer<'a> {
         );
         self.scopes.push_scope(Some(func_decl.id));
         let func = self.scopes.global.functions.get(&func_decl.id).unwrap();
-        if STD_RESERVED_FUNCTIONS.contains(&&*func.name) {
+        if STD_RESERVED_WORDS.contains(&&*func.name) {
             let item = ast.query_item(item_id);
             let span = match item.kind {
                 ItemKind::Function(ref func) => func.identifier.span.clone(),
@@ -214,7 +216,11 @@ impl<'a> ASTWalker for TypeAnalyzer<'a> {
         call_expression: &CallExpr,
         expr: &Expr,
     ) -> Result<()> {
-        log::debug!("TypeAnalyzer::visit_call_expression");
+        if let Some(scope) = call_expression.scope {
+            let scope = ast.query_expr(scope);
+
+            todo!()
+        }
 
         let func = self
             .scopes
@@ -257,10 +263,12 @@ impl<'a> ASTWalker for TypeAnalyzer<'a> {
 
             ast.update_type(expr.id, return_type);
             Ok(())
-        } else if STD_RESERVED_FUNCTIONS.contains(&&call_expression.callee.span.literal[..]) {
+        } else if STD_RESERVED_WORDS.contains(&&call_expression.callee.span.literal[..]) {
             let return_type = match &call_expression.callee.span.literal[..] {
                 "print" => Type::Void,
                 "println" => Type::Void,
+                "eprint" => Type::Void,
+                "eprintln" => Type::Void,
                 _ => unreachable!(),
             };
 
@@ -322,14 +330,16 @@ impl<'a> ASTWalker for TypeAnalyzer<'a> {
 
         let name = variable_expression.identifier.span.literal.clone();
 
-        match self.scopes.lookup_var(&name) {
-            Some(id) => {
-                let var = self.scopes.global.variables.get(&id).unwrap();
-                ast.update_type(expr.id, var.type_.clone());
-                ast.set_variable(expr.id, id);
-            }
-            None => {
-                return Err(NotFound(name, expr.span(ast), self.content.clone()));
+        if !STD_RESERVED_WORDS.contains(&&*name) {
+            match self.scopes.lookup_var(&name) {
+                Some(id) => {
+                    let var = self.scopes.global.variables.get(&id).unwrap();
+                    ast.update_type(expr.id, var.type_.clone());
+                    ast.set_variable(expr.id, id);
+                }
+                None => {
+                    return Err(NotFound(name, expr.span(ast), self.content.clone()));
+                }
             }
         }
 

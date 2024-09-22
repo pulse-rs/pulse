@@ -222,6 +222,7 @@ impl Ast {
         left_paren: Token,
         arguments: Vec<ID>,
         right_paren: Token,
+        scope: Option<ID>,
     ) -> &Expr {
         self.new_expr(ExprKind::Call(CallExpr {
             callee,
@@ -229,6 +230,7 @@ impl Ast {
             left_paren,
             right_paren,
             function_idx: new_id(self.exprs.len() as u32),
+            scope,
         }))
     }
 
@@ -291,5 +293,9 @@ impl Ast {
     pub fn update_type(&mut self, expr_id: ID, type_: Type) {
         let expr = self.exprs.get_mut(&expr_id).unwrap();
         expr.ty = type_;
+    }
+
+    pub fn scoped_identifier(&mut self, path: Vec<Token>) -> &Expr {
+        self.new_expr(ExprKind::ScopedIdentifier { path })
     }
 }

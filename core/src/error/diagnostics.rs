@@ -48,7 +48,8 @@ impl Diagnostic {
                 write!(buff, "{}", line_current.cyan()).expect("Error writing line number");
                 writeln!(buff, "    {}", line_content).expect("Error writing content");
 
-                let padding_left = " ".repeat((column + 7) as usize);
+                let padding_left =
+                    " ".repeat((column + 6 + line_number.to_string().len() as u32) as usize);
                 writeln!(buff, "{}{}", padding_left, decoration.bright_red())
                     .expect("Error writing decoration");
 

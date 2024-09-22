@@ -106,7 +106,11 @@ impl<'a> Lexer<'a> {
             '{' => TokenKind::Separator(Separator::OpenBrace),
             '}' => TokenKind::Separator(Separator::CloseBrace),
             ',' => TokenKind::Separator(Separator::Comma),
-            ':' => TokenKind::Separator(Separator::Colon),
+            ':' => self.lex_potential_double_char_operator(
+                ':',
+                TokenKind::Separator(Separator::Colon),
+                TokenKind::Separator(Separator::Scope),
+            ),
             ';' => TokenKind::Separator(Separator::SemiColon),
             '"' => TokenKind::Separator(Separator::Quote),
             _ => TokenKind::Bad,
@@ -172,7 +176,7 @@ impl<'a> Lexer<'a> {
         let c = self.current_char();
         self.current_pos += 1;
 
-        self.update_position(c.unwrap());
+        self.update_position(c?);
 
         c
     }

@@ -13,6 +13,7 @@ pub struct CallExpr {
     pub arguments: Vec<ID>,
     pub right_paren: Token,
     pub function_idx: ID,
+    pub scope: Option<ID>,
 }
 
 impl CallExpr {
@@ -209,6 +210,7 @@ pub enum ExprKind {
     Block(BlockExpr),
     Error(TextSpan),
     String(StringExpr),
+    ScopedIdentifier { path: Vec<Token> }
 }
 
 impl ExprKind {

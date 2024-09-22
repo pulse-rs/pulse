@@ -166,6 +166,9 @@ pub trait ASTWalker {
             ExprKind::String(string_expr) => {
                 self.visit_string_expression(ast, string_expr, &expression)?;
             }
+            ExprKind::ScopedIdentifier { path } => {
+                //     TODO:
+            }
         }
 
         Ok(())

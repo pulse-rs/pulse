@@ -227,7 +227,7 @@ impl Parser<'_> {
             .block_expression(left_brace, statements, right_brace))
     }
 
-    fn parse_call_expression(&mut self, identifier: Token) -> Result<ID> {
+    fn parse_call_expression(&mut self, identifier: Token, scope: Option<ID>) -> Result<ID> {
         let left_paren = self
             .check(TokenKind::Separator(Separator::LeftParen))?
             .clone();
@@ -243,7 +243,7 @@ impl Parser<'_> {
             .clone();
         Ok(self
             .ast
-            .call_expression(identifier, left_paren, arguments, right_paren)
+            .call_expression(identifier, left_paren, arguments, right_paren, scope)
             .id)
     }
 
@@ -266,12 +266,16 @@ impl Parser<'_> {
                     .parenthesized_expression(left_paren, expr, right_paren)
             }),
             TokenKind::Identifier => {
+                if self.peek(0).kind == TokenKind::Separator(Separator::Scope) {
+                    return self.parse_scoped_identifier(token);
+                }
                 if matches!(
                     self.current().kind,
                     TokenKind::Separator(Separator::LeftParen)
                 ) {
-                    return self.parse_call_expression(token);
+                    return self.parse_call_expression(token, None);
                 }
+
                 Ok(self.ast.variable_expression(token))
             }
             TokenKind::Keyword(Keyword::True) | TokenKind::Keyword(Keyword::False) => {
@@ -279,20 +283,50 @@ impl Parser<'_> {
 
                 Ok(self.ast.boolean_expression(token, value))
             }
-            _ => {
-                // TODO: handle error
-                Err(ParseError(
-                    format!("Unexpected token: {}", token.kind.to_string().cyan()),
-                    token.span,
-                    self.content.clone(),
-                ))
-            }
+            _ => Err(ParseError(
+                format!("Unexpected token: {}", token.kind.to_string().cyan()),
+                token.span,
+                self.content.clone(),
+            )),
         }?
         .id;
 
         Ok(id)
     }
 
+    pub fn parse_scoped_identifier(&mut self, tok: Token) -> Result<ID> {
+        let mut path = vec![tok];
+
+        loop {
+            if self.peek(0).kind == TokenKind::Separator(Separator::LeftParen) {
+                // Jeśli następny token to nawias otwierający, traktujemy ostatni element jako nazwę funkcji
+                let func_name = path.pop().unwrap();
+                let scope = if !path.is_empty() {
+                    Some(self.ast.scoped_identifier(path).id)
+                } else {
+                    None
+                };
+                return self.parse_call_expression(func_name, scope);
+            }
+
+            if self.peek(0).kind != TokenKind::Separator(Separator::Scope) {
+                break;
+            }
+
+            self.consume(); // Konsumuj separator zakresu
+            let ident = self.check(TokenKind::Identifier)?.clone();
+            path.push(ident);
+        }
+
+        println!(
+            "Scope path: {:?}",
+            path.iter()
+                .map(|t| t.span.literal.clone())
+                .collect::<Vec<String>>()
+        );
+
+        Ok(self.ast.scoped_identifier(path).id)
+    }
     pub fn parse_unary_expression(&mut self) -> Result<ID> {
         if let Some(operator) = self.parse_unary_operator() {
             self.consume();

@@ -45,6 +45,7 @@ pub enum Separator {
     SemiColon,
     Arrow,
     Quote,
+    Scope
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -113,6 +114,7 @@ impl Display for TokenKind {
                     Separator::SemiColon => ";",
                     Separator::Arrow => "->",
                     Separator::Quote => "\"",
+                    Separator::Scope => "::"
                 };
 
                 write!(f, "{}", sep_str)

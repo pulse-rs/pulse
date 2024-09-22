@@ -115,8 +115,16 @@ pub fn run_command(path: PathBuf) -> Result<()> {
             .current_dir(build_dir()?)
             .output()
             .map_err(Error::io)?;
+        let to_display = String::from_utf8_lossy(&output.stdout);
+        let err_to_display = String::from_utf8_lossy(&output.stderr);
 
-        display_output(output);
+        for line in to_display.lines() {
+            println!("{}", line);
+        }
+
+        for line in err_to_display.lines() {
+            eprintln!("{}", line);
+        }
     } else {
         debug!("No C++ compiler found.");
         return Err(Error::CompilerNotFound(looked_for.to_string()));

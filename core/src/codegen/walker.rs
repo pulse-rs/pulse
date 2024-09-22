@@ -1,6 +1,6 @@
 use crate::ast::expr::{
-    BinOpKind, BinOperator, BinaryExpr, BoolExpr, CallExpr, Expr, IfExpr, NumberExpr, StringExpr,
-    UnaryExpr, VarExpr,
+    BinOpKind, BinOperator, BinaryExpr, BoolExpr, CallExpr, Expr, ExprKind, IfExpr, NumberExpr,
+    StringExpr, UnaryExpr, VarExpr,
 };
 use crate::ast::function::FunctionDeclaration;
 use crate::ast::span::TextSpan;
@@ -8,7 +8,7 @@ use crate::ast::stmt::{LetStmt, ReturnStmt, Stmt};
 use crate::ast::visitor::ASTWalker;
 use crate::ast::{Ast, ID};
 use crate::codegen::CppCodegen;
-use crate::semantic::types::STD_RESERVED_FUNCTIONS;
+use crate::semantic::types::STD_RESERVED_WORDS;
 use crate::types::Type;
 use crate::Result;
 use std::fmt::Write;
@@ -154,7 +154,20 @@ impl ASTWalker for CppCodegen<'_> {
         call_expression: &CallExpr,
         _expr: &Expr,
     ) -> Result<()> {
-        if STD_RESERVED_FUNCTIONS.contains(&call_expression.callee.span.literal.as_str()) {
+        if let Some(scope) = call_expression.scope {
+            let scope = ast.query_expr(scope);
+
+            let expr = match &scope.kind {
+                ExprKind::ScopedIdentifier { path } => {
+                    for token in path {
+                        write!(self.output, "{}::", token.span.literal.clone())?;
+                    }
+                }
+                _ => unreachable!("Invalid scope"),
+            };
+        }
+
+        if STD_RESERVED_WORDS.contains(&call_expression.callee.span.literal.as_str()) {
             write!(self.output, "{} (", call_expression.callee.span.literal)?;
 
             for (i, arg) in call_expression.arguments.iter().enumerate() {
