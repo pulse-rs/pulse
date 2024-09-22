@@ -260,7 +260,7 @@ impl ASTWalker for CppCodegen<'_> {
         string: &StringExpr,
         expr: &Expr,
     ) -> Result<()> {
-        write!(self.output, "{}", string.string)?;
+        write!(self.output, "\"{}\"", string.string)?;
 
         Ok(())
     }

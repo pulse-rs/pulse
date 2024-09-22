@@ -10,7 +10,7 @@ fn main() -> int {
 
     let val: int = std::math::sqrt(4) + 5;
 
-    std::io::println(val);
+    std::io::println("Result is", val);
 
     if a == 579 {
         return 0
