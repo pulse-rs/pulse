@@ -278,7 +278,6 @@ impl<'a> ASTWalker for TypeAnalyzer<'a> {
             let expr = match &scope.kind {
                 ExprKind::ScopedIdentifier { path } => {
                     if path.first().unwrap().span.literal == "std" {
-                        println!("{}", &path[1].span.literal[..]);
                         let module = STD_MODULES
                             .get(&path[1].span.literal[..])
                             .expect("Module not found");

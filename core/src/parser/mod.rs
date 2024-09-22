@@ -299,7 +299,6 @@ impl Parser<'_> {
 
         loop {
             if self.peek(0).kind == TokenKind::Separator(Separator::LeftParen) {
-                // Jeśli następny token to nawias otwierający, traktujemy ostatni element jako nazwę funkcji
                 let func_name = path.pop().unwrap();
                 let scope = if !path.is_empty() {
                     Some(self.ast.scoped_identifier(path).id)
@@ -313,17 +312,10 @@ impl Parser<'_> {
                 break;
             }
 
-            self.consume(); // Konsumuj separator zakresu
+            self.consume();
             let ident = self.check(TokenKind::Identifier)?.clone();
             path.push(ident);
         }
-
-        println!(
-            "Scope path: {:?}",
-            path.iter()
-                .map(|t| t.span.literal.clone())
-                .collect::<Vec<String>>()
-        );
 
         Ok(self.ast.scoped_identifier(path).id)
     }

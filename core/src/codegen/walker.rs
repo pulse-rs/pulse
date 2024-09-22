@@ -139,7 +139,6 @@ impl ASTWalker for CppCodegen<'_> {
 
             write!(self.output, "{} {} = ", type_name, var.name)?;
 
-            println!("let_statement.initializer: {:?}", let_statement.initializer);
             self.visit_expression(ast, let_statement.initializer)?;
 
             write!(self.output, "")?;
